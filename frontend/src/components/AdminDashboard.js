@@ -676,6 +676,61 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" onClick={closeDetailModal}></div>
+            
+            <div className="inline-block align-bottom bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-white">
+                  {selectedUser ? 'User Details' : selectedJob ? 'Job Details' : 'Bid Details'}
+                </h3>
+                <button
+                  onClick={closeDetailModal}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {detailLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* User Details */}
+                  {selectedUser && (
+                    <UserDetailView user={selectedUser} />
+                  )}
+
+                  {/* Job Details */}
+                  {selectedJob && (
+                    <JobDetailView job={selectedJob} />
+                  )}
+
+                  {/* Bid Details */}
+                  {selectedBid && (
+                    <BidDetailView bid={selectedBid} />
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={closeDetailModal}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
