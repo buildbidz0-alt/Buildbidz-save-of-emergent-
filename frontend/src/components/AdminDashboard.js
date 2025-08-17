@@ -562,12 +562,22 @@ const AdminDashboard = () => {
                               {new Date(job.created_at).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button
-                                onClick={() => handleDeleteJob(job.id)}
-                                className="text-red-400 hover:text-red-300"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleViewJob(job)}
+                                  className="text-blue-400 hover:text-blue-300"
+                                  title="View Details"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteJob(job.id)}
+                                  className="text-red-400 hover:text-red-300"
+                                  title="Delete Job"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
