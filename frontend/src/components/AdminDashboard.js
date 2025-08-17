@@ -474,12 +474,22 @@ const AdminDashboard = () => {
                               {new Date(user.created_at).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="text-red-400 hover:text-red-300 ml-4"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleViewUser(user.id)}
+                                  className="text-blue-400 hover:text-blue-300"
+                                  title="View Details"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="text-red-400 hover:text-red-300"
+                                  title="Delete User"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
