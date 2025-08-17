@@ -735,4 +735,416 @@ const AdminDashboard = () => {
   );
 };
 
+// User Detail View Component
+const UserDetailView = ({ user }) => {
+  const maskPassword = (password) => {
+    return '•'.repeat(12);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Basic User Info */}
+      <div className="glass rounded-lg p-6">
+        <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+          <Users className="h-5 w-5 mr-2 text-blue-400" />
+          User Information
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Company Name</label>
+            <p className="text-white">{user.user.company_name}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Email</label>
+            <p className="text-white flex items-center">
+              <Mail className="h-4 w-4 mr-1 text-gray-400" />
+              {user.user.email}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Contact Phone</label>
+            <p className="text-white flex items-center">
+              <Phone className="h-4 w-4 mr-1 text-gray-400" />
+              {user.user.contact_phone}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Role</label>
+            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              user.user.role === 'buyer' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+            }`}>
+              {user.user.role}
+            </span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Password</label>
+            <p className="text-gray-300">{maskPassword()}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">GST Number</label>
+            <p className="text-white">{user.user.gst_number || 'Not provided'}</p>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-400">Address</label>
+            <p className="text-white">{user.user.address || 'Not provided'}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Subscription Status</label>
+            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              user.user.subscription_status === 'active' || user.user.subscription_status === 'trial'
+                ? 'bg-green-600 text-white' 
+                : 'bg-red-600 text-white'
+            }`}>
+              {user.user.subscription_status || 'inactive'}
+            </span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Member Since</label>
+            <p className="text-white flex items-center">
+              <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+              {new Date(user.user.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="glass rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <Briefcase className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Jobs Posted</p>
+              <p className="text-xl font-semibold text-white">{user.jobs_posted}</p>
+            </div>
+          </div>
+        </div>
+        <div className="glass rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Bids Submitted</p>
+              <p className="text-xl font-semibold text-white">{user.bids_submitted}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Jobs Posted */}
+      {user.jobs && user.jobs.length > 0 && (
+        <div className="glass rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-white mb-4">Jobs Posted</h4>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {user.jobs.map((job) => (
+              <div key={job.id} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h5 className="font-medium text-white">{job.title}</h5>
+                    <p className="text-sm text-gray-400 mt-1">{job.description}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                      <span className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {job.location}
+                      </span>
+                      <span className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(job.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    job.status === 'open' ? 'bg-green-600 text-white' : 
+                    job.status === 'awarded' ? 'bg-blue-600 text-white' : 
+                    'bg-gray-600 text-white'
+                  }`}>
+                    {job.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bids Submitted */}
+      {user.bids && user.bids.length > 0 && (
+        <div className="glass rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-white mb-4">Bids Submitted</h4>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {user.bids.map((bid) => (
+              <div key={bid.id} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-orange-400 font-semibold">₹{bid.price_quote?.toLocaleString()}</span>
+                      <span className="text-gray-400 text-sm">{bid.delivery_estimate}</span>
+                    </div>
+                    {bid.notes && (
+                      <p className="text-sm text-gray-400 mt-1">{bid.notes}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-2">
+                      Submitted on {new Date(bid.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
+                    bid.status === 'awarded' ? 'bg-green-600 text-white' : 
+                    'bg-red-600 text-white'
+                  }`}>
+                    {bid.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Job Detail View Component
+const JobDetailView = ({ job }) => {
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case 'material': return <Package className="h-5 w-5" />;
+      case 'labor': return <Users className="h-5 w-5" />;
+      case 'machinery': return <Settings className="h-5 w-5" />;
+      default: return <Package className="h-5 w-5" />;
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'material': return 'bg-blue-600';
+      case 'labor': return 'bg-green-600';
+      case 'machinery': return 'bg-orange-600';
+      default: return 'bg-gray-600';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Job Info */}
+      <div className="glass rounded-lg p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center">
+            <div className={`${getCategoryColor(job.category)} p-3 rounded-lg mr-4`}>
+              {getCategoryIcon(job.category)}
+            </div>
+            <div>
+              <h4 className="text-xl font-semibold text-white">{job.title}</h4>
+              <div className="flex items-center space-x-4 mt-2 text-gray-400">
+                <span className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {job.location}
+                </span>
+                <span className="flex items-center">
+                  <Clock className="h-4 w-4 mr-1" />
+                  {job.delivery_timeline}
+                </span>
+                {job.budget_range && (
+                  <span className="flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    {job.budget_range}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            job.status === 'open' ? 'bg-green-600 text-white' : 
+            job.status === 'awarded' ? 'bg-blue-600 text-white' : 
+            'bg-gray-600 text-white'
+          }`}>
+            {job.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Category</label>
+            <p className="text-white capitalize">{job.category}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Quantity</label>
+            <p className="text-white">{job.quantity || 'Not specified'}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Posted By</label>
+            <p className="text-white">{job.posted_by_info?.company_name || 'Unknown'}</p>
+            {job.posted_by_info?.email && (
+              <p className="text-gray-400 text-sm">{job.posted_by_info.email}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Posted On</label>
+            <p className="text-white">{new Date(job.created_at).toLocaleDateString()}</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
+          <p className="text-gray-300">{job.description}</p>
+        </div>
+      </div>
+
+      {/* Bids Received */}
+      {job.bids && job.bids.length > 0 && (
+        <div className="glass rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-white mb-4">
+            Bids Received ({job.bids.length})
+          </h4>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {job.bids.map((bid) => (
+              <div key={bid.id} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-white">
+                        {bid.supplier_info?.company_name || 'Unknown Supplier'}
+                      </h5>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
+                        bid.status === 'awarded' ? 'bg-green-600 text-white' : 
+                        'bg-red-600 text-white'
+                      }`}>
+                        {bid.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span className="text-orange-400 font-semibold">₹{bid.price_quote?.toLocaleString()}</span>
+                      <span className="text-gray-400">{bid.delivery_estimate}</span>
+                      {bid.supplier_info?.contact_phone && (
+                        <span className="text-gray-400">{bid.supplier_info.contact_phone}</span>
+                      )}
+                    </div>
+                    {bid.notes && (
+                      <p className="text-sm text-gray-400 mt-2">{bid.notes}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Submitted on {new Date(bid.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Bid Detail View Component
+const BidDetailView = ({ bid }) => {
+  return (
+    <div className="space-y-6">
+      <div className="glass rounded-lg p-6">
+        <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+          <DollarSign className="h-5 w-5 mr-2 text-orange-400" />
+          Bid Information
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Price Quote</label>
+            <p className="text-2xl font-semibold text-orange-400">₹{bid.price_quote?.toLocaleString()}</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Delivery Estimate</label>
+            <p className="text-white flex items-center">
+              <Clock className="h-4 w-4 mr-1 text-gray-400" />
+              {bid.delivery_estimate}
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Status</label>
+            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+              bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
+              bid.status === 'awarded' ? 'bg-green-600 text-white' : 
+              'bg-red-600 text-white'
+            }`}>
+              {bid.status}
+            </span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400">Submitted On</label>
+            <p className="text-white flex items-center">
+              <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+              {new Date(bid.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {bid.notes && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-400 mb-2">Additional Notes</label>
+            <div className="bg-gray-700 rounded-lg p-4">
+              <p className="text-gray-300">{bid.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Supplier Info */}
+        {bid.supplier_info && (
+          <div className="border-t border-gray-700 pt-4">
+            <h5 className="text-md font-semibold text-white mb-3">Supplier Information</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400">Company Name</label>
+                <p className="text-white">{bid.supplier_info.company_name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400">Contact</label>
+                <p className="text-white flex items-center">
+                  <Phone className="h-4 w-4 mr-1 text-gray-400" />
+                  {bid.supplier_info.contact_phone}
+                </p>
+              </div>
+              {bid.supplier_info.email && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Email</label>
+                  <p className="text-white flex items-center">
+                    <Mail className="h-4 w-4 mr-1 text-gray-400" />
+                    {bid.supplier_info.email}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Job Info */}
+        {bid.job_info && (
+          <div className="border-t border-gray-700 pt-4 mt-4">
+            <h5 className="text-md font-semibold text-white mb-3">Job Information</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400">Job Title</label>
+                <p className="text-white">{bid.job_info.title}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400">Category</label>
+                <p className="text-white capitalize">{bid.job_info.category}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400">Location</label>
+                <p className="text-white flex items-center">
+                  <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                  {bid.job_info.location}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default AdminDashboard;
