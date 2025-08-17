@@ -457,11 +457,13 @@ async def delete_user(user_id: str, current_user: User = Depends(require_admin))
 async def get_all_jobs(current_user: User = Depends(require_admin)):
     jobs = await db.jobs.find().sort("created_at", -1).to_list(1000)
     
-    # Enrich with user info
+    # Enrich with user info and convert ObjectIds
     enriched_jobs = []
     for job in jobs:
-        user = await db.users.find_one({"id": job["posted_by"]})
-        job_dict = dict(job)  # Convert to regular dict
+        # Remove MongoDB ObjectId if present
+        job_dict = {k: v for k, v in job.items() if k != '_id'}
+        
+        user = await db.users.find_one({"id": job_dict["posted_by"]})
         job_dict["posted_by_info"] = {
             "company_name": user["company_name"],
             "email": user["email"],
