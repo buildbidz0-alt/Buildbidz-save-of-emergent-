@@ -418,6 +418,24 @@ async def get_all_users(current_user: User = Depends(require_admin)):
     users = await db.users.find().to_list(1000)
     return [User(**user) for user in users]
 
+@api_router.get("/admin/users/{user_id}/details")
+async def get_user_details(user_id: str, current_user: User = Depends(require_admin)):
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get user's jobs and bids
+    jobs = await db.jobs.find({"posted_by": user_id}).to_list(100)
+    bids = await db.bids.find({"supplier_id": user_id}).to_list(100)
+    
+    return {
+        "user": User(**user),
+        "jobs_posted": len(jobs),
+        "bids_submitted": len(bids),
+        "jobs": [JobPost(**job) for job in jobs],
+        "bids": bids
+    }
+
 @api_router.delete("/admin/users/{user_id}")
 async def delete_user(user_id: str, current_user: User = Depends(require_admin)):
     result = await db.users.delete_one({"id": user_id})
@@ -433,7 +451,22 @@ async def delete_user(user_id: str, current_user: User = Depends(require_admin))
 @api_router.get("/admin/jobs")
 async def get_all_jobs(current_user: User = Depends(require_admin)):
     jobs = await db.jobs.find().sort("created_at", -1).to_list(1000)
-    return [JobPost(**job) for job in jobs]
+    
+    # Enrich with user info
+    enriched_jobs = []
+    for job in jobs:
+        user = await db.users.find_one({"id": job["posted_by"]})
+        job_with_user = {
+            **job,
+            "posted_by_info": {
+                "company_name": user["company_name"],
+                "email": user["email"],
+                "contact_phone": user["contact_phone"]
+            } if user else None
+        }
+        enriched_jobs.append(job_with_user)
+    
+    return enriched_jobs
 
 @api_router.delete("/admin/jobs/{job_id}")
 async def delete_job(job_id: str, current_user: User = Depends(require_admin)):
@@ -449,7 +482,29 @@ async def delete_job(job_id: str, current_user: User = Depends(require_admin)):
 @api_router.get("/admin/bids")
 async def get_all_bids(current_user: User = Depends(require_admin)):
     bids = await db.bids.find().sort("created_at", -1).to_list(1000)
-    return bids
+    
+    # Enrich with user and job info
+    enriched_bids = []
+    for bid in bids:
+        supplier = await db.users.find_one({"id": bid["supplier_id"]})
+        job = await db.jobs.find_one({"id": bid["job_id"]})
+        
+        bid_with_info = {
+            **bid,
+            "supplier_info": {
+                "company_name": supplier["company_name"],
+                "email": supplier["email"],
+                "contact_phone": supplier["contact_phone"]
+            } if supplier else None,
+            "job_info": {
+                "title": job["title"],
+                "category": job["category"],
+                "location": job["location"]
+            } if job else None
+        }
+        enriched_bids.append(bid_with_info)
+    
+    return enriched_bids
 
 @api_router.delete("/admin/bids/{bid_id}")
 async def delete_bid(bid_id: str, current_user: User = Depends(require_admin)):
