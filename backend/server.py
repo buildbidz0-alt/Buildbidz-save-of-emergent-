@@ -488,13 +488,15 @@ async def delete_job(job_id: str, current_user: User = Depends(require_admin)):
 async def get_all_bids(current_user: User = Depends(require_admin)):
     bids = await db.bids.find().sort("created_at", -1).to_list(1000)
     
-    # Enrich with user and job info
+    # Enrich with user and job info and convert ObjectIds
     enriched_bids = []
     for bid in bids:
-        supplier = await db.users.find_one({"id": bid["supplier_id"]})
-        job = await db.jobs.find_one({"id": bid["job_id"]})
+        # Remove MongoDB ObjectId if present
+        bid_dict = {k: v for k, v in bid.items() if k != '_id'}
         
-        bid_dict = dict(bid)  # Convert to regular dict
+        supplier = await db.users.find_one({"id": bid_dict["supplier_id"]})
+        job = await db.jobs.find_one({"id": bid_dict["job_id"]})
+        
         bid_dict["supplier_info"] = {
             "company_name": supplier["company_name"],
             "email": supplier["email"],
