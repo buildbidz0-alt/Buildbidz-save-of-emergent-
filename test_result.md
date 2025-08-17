@@ -187,16 +187,19 @@ frontend:
         comment: "Backend API now working correctly (GET /bids/my returns proper data). Frontend testing not performed as per system limitations - main agent should verify frontend integration."
   
   - task: "Add detailed views to AdminDashboard"
-    implemented: false
-    working: false
+    implemented: true
+    working: "NA"
     file: "AdminDashboard.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Admin panel shows basic tables but missing clickable detailed views"
+      - working: "NA"
+        agent: "main"
+        comment: "IMPLEMENTED: Added detailed modal views for users (email, masked password, jobs, bids), jobs (full details + bids), and bids (full info + supplier/job details). Added Eye icon buttons to all tables."
       - working: "NA"
         agent: "testing"
         comment: "Backend admin endpoints working correctly (GET /admin/users/{user_id}/details provides all needed data). Frontend implementation not tested as per system limitations."
