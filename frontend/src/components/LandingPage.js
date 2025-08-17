@@ -226,7 +226,7 @@ const LandingPage = () => {
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-white mb-2">Construction Companies</h3>
                 <div className="text-4xl font-bold text-orange-500 mb-2">₹5,000</div>
-                <p className="text-gray-400">per year (₹416/month)</p>
+                <p className="text-gray-400">per month after 1-month free trial</p>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center text-gray-300">
