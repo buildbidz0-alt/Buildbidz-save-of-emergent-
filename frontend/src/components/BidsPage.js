@@ -245,6 +245,7 @@ const BidsPage = () => {
                     <BidCard 
                       key={bid.id} 
                       bid={bid} 
+                      jobId={jobId}
                       onAward={() => handleAwardBid(bid.id)}
                       canAward={user?.role === 'buyer' && jobDetails?.status === 'open'}
                     />
