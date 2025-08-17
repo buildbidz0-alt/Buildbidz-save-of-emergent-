@@ -416,15 +416,26 @@ const BidCard = ({ bid, onAward, canAward }) => {
         <div className="text-sm text-gray-400">
           Contact: {bid.supplier_info?.contact_phone}
         </div>
-        {canAward && bid.status === 'submitted' && (
-          <button
-            onClick={onAward}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center"
-          >
-            <Award className="h-4 w-4 mr-2" />
-            Award Bid
-          </button>
-        )}
+        <div className="flex space-x-2">
+          {bid.status === 'awarded' && (
+            <Link
+              to={`/chat?job_id=${job_id}`}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Chat
+            </Link>
+          )}
+          {canAward && bid.status === 'submitted' && (
+            <button
+              onClick={onAward}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center"
+            >
+              <Award className="h-4 w-4 mr-2" />
+              Award Bid
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
