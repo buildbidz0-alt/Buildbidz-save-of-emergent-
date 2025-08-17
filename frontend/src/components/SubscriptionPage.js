@@ -131,14 +131,14 @@ const SubscriptionPage = () => {
               
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-white mb-4">
-                  Annual Subscription for Construction Companies
+                  Monthly Subscription for Construction Companies
                 </h2>
                 <div className="flex items-center justify-center mb-4">
                   <span className="text-5xl font-bold text-orange-500">₹5,000</span>
-                  <span className="text-gray-400 ml-2">/year</span>
+                  <span className="text-gray-400 ml-2">/month</span>
                 </div>
                 <p className="text-gray-400 mb-6">
-                  That's just ₹416 per month! Save ₹19,000 compared to monthly billing
+                  Start with a 1-month free trial! Cancel anytime.
                 </p>
 
                 {error && (
