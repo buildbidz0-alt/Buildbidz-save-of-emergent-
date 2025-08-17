@@ -306,7 +306,10 @@ const LandingPage = () => {
               <Building2 className="h-8 w-8 text-orange-500" />
               <span className="text-2xl font-bold text-white">BuildBidz</span>
             </div>
-            <p className="text-gray-400">© 2025 BuildBidz. All rights reserved.</p>
+            <div className="text-gray-400 text-sm">
+              <p>📞 8809696025 | 📧 mohammadjalaluddin1027@gmail.com</p>
+              <p className="mt-1">© 2025 BuildBidz. All rights reserved.</p>
+            </div>
           </div>
         </div>
       </footer>
