@@ -432,6 +432,32 @@ const BidCard = ({ bid, onAward, canAward }) => {
 
 // My Bid Card Component
 const MyBidCard = ({ bid }) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'awarded':
+        return 'bg-green-600 text-white';
+      case 'rejected':
+        return 'bg-red-600 text-white';
+      case 'submitted':
+        return 'bg-blue-600 text-white';
+      default:
+        return 'bg-gray-600 text-white';
+    }
+  };
+
+  const getStatusMessage = (status) => {
+    switch (status) {
+      case 'awarded':
+        return '🎉 Congratulations! Your bid was awarded';
+      case 'rejected':
+        return 'Bid not selected this time';
+      case 'submitted':
+        return 'Bid submitted - awaiting review';
+      default:
+        return 'Status unknown';
+    }
+  };
+
   return (
     <div className="glass rounded-lg p-6">
       <div className="flex items-start justify-between mb-4">
@@ -454,13 +480,26 @@ const MyBidCard = ({ bid }) => {
             </div>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
-          bid.status === 'awarded' ? 'bg-green-600 text-white' : 
-          'bg-red-600 text-white'
-        }`}>
-          {bid.status}
+        <div className="text-center">
+          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(bid.status)}`}>
+            {bid.status}
+          </div>
         </div>
+      </div>
+
+      {/* Status message */}
+      <div className={`p-3 rounded-lg mb-4 ${
+        bid.status === 'awarded' ? 'bg-green-500/10 border border-green-500/30' :
+        bid.status === 'rejected' ? 'bg-red-500/10 border border-red-500/30' :
+        'bg-blue-500/10 border border-blue-500/30'
+      }`}>
+        <p className={`text-sm font-medium ${
+          bid.status === 'awarded' ? 'text-green-400' :
+          bid.status === 'rejected' ? 'text-red-400' :
+          'text-blue-400'
+        }`}>
+          {getStatusMessage(bid.status)}
+        </p>
       </div>
 
       {bid.notes && (
