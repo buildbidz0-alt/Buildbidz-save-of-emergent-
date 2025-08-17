@@ -538,20 +538,26 @@ const AdminDashboard = () => {
                       <tbody className="divide-y divide-gray-700">
                         {filteredBids.map((bid) => (
                           <tr key={bid.id} className="hover:bg-gray-800">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                              {bid.job_id.substring(0, 8)}...
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-white">{bid.job_id.substring(0, 8)}...</div>
+                              {bid.job_info && (
+                                <div className="text-xs text-blue-400">{bid.job_info.title}</div>
+                              )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                              {bid.supplier_id.substring(0, 8)}...
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-white">{bid.supplier_id.substring(0, 8)}...</div>
+                              {bid.supplier_info && (
+                                <div className="text-xs text-green-400">{bid.supplier_info.company_name}</div>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-400">
                               ₹{bid.price_quote?.toLocaleString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                bid.status === 'submitted' ? 'bg-blue-100 text-blue-800' : 
-                                bid.status === 'awarded' ? 'bg-green-100 text-green-800' : 
-                                'bg-red-100 text-red-800'
+                                bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
+                                bid.status === 'awarded' ? 'bg-green-600 text-white' : 
+                                'bg-red-600 text-white'
                               }`}>
                                 {bid.status}
                               </span>
