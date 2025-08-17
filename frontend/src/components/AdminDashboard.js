@@ -394,7 +394,7 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                user.role === 'buyer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                                user.role === 'buyer' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
                               }`}>
                                 {user.role}
                               </span>
@@ -402,8 +402,8 @@ const AdminDashboard = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 user.subscription_status === 'active' || user.subscription_status === 'trial'
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-red-100 text-red-800'
+                                  ? 'bg-green-600 text-white' 
+                                  : 'bg-red-600 text-white'
                               }`}>
                                 {user.subscription_status || 'inactive'}
                               </span>
