@@ -492,20 +492,19 @@ async def get_all_bids(current_user: User = Depends(require_admin)):
         supplier = await db.users.find_one({"id": bid["supplier_id"]})
         job = await db.jobs.find_one({"id": bid["job_id"]})
         
-        bid_with_info = {
-            **bid,
-            "supplier_info": {
-                "company_name": supplier["company_name"],
-                "email": supplier["email"],
-                "contact_phone": supplier["contact_phone"]
-            } if supplier else None,
-            "job_info": {
-                "title": job["title"],
-                "category": job["category"],
-                "location": job["location"]
-            } if job else None
-        }
-        enriched_bids.append(bid_with_info)
+        bid_dict = dict(bid)  # Convert to regular dict
+        bid_dict["supplier_info"] = {
+            "company_name": supplier["company_name"],
+            "email": supplier["email"],
+            "contact_phone": supplier["contact_phone"]
+        } if supplier else None
+        bid_dict["job_info"] = {
+            "title": job["title"],
+            "category": job["category"],
+            "location": job["location"]
+        } if job else None
+        
+        enriched_bids.append(bid_dict)
     
     return enriched_bids
 
