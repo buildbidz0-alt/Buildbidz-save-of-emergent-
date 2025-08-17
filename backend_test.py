@@ -5,13 +5,15 @@ from datetime import datetime
 import time
 
 class BuildBidzAPITester:
-    def __init__(self, base_url="https://conmarket.preview.emergentagent.com"):
+    def __init__(self, base_url="https://45a54939-7826-473a-9ce5-433a2fae974a.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.buyer_token = None
         self.supplier_token = None
+        self.admin_token = None
         self.buyer_user = None
         self.supplier_user = None
+        self.admin_user = None
         self.tests_run = 0
         self.tests_passed = 0
         self.job_id = None
