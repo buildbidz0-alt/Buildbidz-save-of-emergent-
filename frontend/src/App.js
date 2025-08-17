@@ -13,6 +13,7 @@ import SubscriptionPage from "./components/SubscriptionPage";
 import SettingsPage from "./components/SettingsPage";
 import AboutPage from "./components/AboutPage";
 import AdminDashboard from "./components/AdminDashboard";
+import ChatPage from "./components/ChatPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
