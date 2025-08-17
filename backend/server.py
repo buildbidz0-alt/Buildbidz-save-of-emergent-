@@ -180,6 +180,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
         
+        # Handle admin user separately
+        if user_id == "admin":
+            admin_user = User(
+                id="admin",
+                email=ADMIN_EMAIL,
+                company_name="BuildBidz Admin",
+                contact_phone=SUPPORT_PHONE,
+                role=UserRole.ADMIN,
+                is_verified=True,
+                subscription_status="active"
+            )
+            return admin_user
+        
         user = await db.users.find_one({"id": user_id})
         if user is None:
             raise HTTPException(status_code=401, detail="User not found")
