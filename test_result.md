@@ -111,40 +111,49 @@ user_problem_statement: |
 
 backend:
   - task: "Fix bid visibility for buyers"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Need to investigate GET /jobs/{job_id}/bids endpoint - bids may not be showing for buyers"
+      - working: true
+        agent: "testing"
+        comment: "FIXED: ObjectID serialization issue resolved. Endpoint now returns 200 with properly enriched bid data including supplier info (company_name, contact_phone). Tested with real buyer account viewing bids on their job - works perfectly."
   
   - task: "Fix My Bids endpoint for suppliers"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Need to investigate GET /bids/my endpoint - suppliers may not see their bids"
+      - working: true
+        agent: "testing"
+        comment: "FIXED: ObjectID serialization issue resolved. Endpoint now returns 200 with properly enriched bid data including job info (title, category, location). Tested with real supplier account viewing their bids - works perfectly."
   
   - task: "Add user details endpoint for admin"
     implemented: true
-    working: "NA"
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoint exists at /admin/users/{user_id}/details but needs testing"
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Admin user details endpoint working correctly. Returns user info, jobs_posted count, bids_submitted count, full job list, and bid list. Password field properly excluded for security."
 
 frontend:
   - task: "Fix bids display on BidsPage for buyers"
@@ -158,6 +167,9 @@ frontend:
       - working: false
         agent: "main"
         comment: "BidsPage component exists but may have issues fetching/displaying bids"
+      - working: "NA"
+        agent: "testing"
+        comment: "Backend API now working correctly (GET /jobs/{job_id}/bids returns proper data). Frontend testing not performed as per system limitations - main agent should verify frontend integration."
   
   - task: "Fix My Bids display for suppliers"
     implemented: true
@@ -170,6 +182,9 @@ frontend:
       - working: false
         agent: "main"
         comment: "MyBids tab exists but may not be properly displaying supplier's bids"
+      - working: "NA"
+        agent: "testing"
+        comment: "Backend API now working correctly (GET /bids/my returns proper data). Frontend testing not performed as per system limitations - main agent should verify frontend integration."
   
   - task: "Add detailed views to AdminDashboard"
     implemented: false
@@ -182,17 +197,20 @@ frontend:
       - working: false
         agent: "main"
         comment: "Admin panel shows basic tables but missing clickable detailed views"
+      - working: "NA"
+        agent: "testing"
+        comment: "Backend admin endpoints working correctly (GET /admin/users/{user_id}/details provides all needed data). Frontend implementation not tested as per system limitations."
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 0
+  test_sequence: 1
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Fix bid visibility for buyers"
-    - "Fix My Bids endpoint for suppliers"
+    - "Fix bids display on BidsPage for buyers"
+    - "Fix My Bids display for suppliers"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -200,3 +218,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Starting investigation of bidding system visibility issues. Will test backend endpoints first to identify root cause."
+  - agent: "testing"
+    message: "CRITICAL ISSUE IDENTIFIED AND FIXED: Both bid visibility endpoints were failing due to MongoDB ObjectID serialization errors. The issue was that GET /jobs/{job_id}/bids and GET /bids/my endpoints were not removing the '_id' field before JSON serialization, while admin endpoints were properly handling this. SOLUTION IMPLEMENTED: Added ObjectID removal logic (bid_dict = {k: v for k, v in bid.items() if k != '_id'}) to both endpoints, matching the pattern used in admin endpoints. TESTING RESULTS: All backend bid functionality now working perfectly - buyers can see bids with supplier info, suppliers can see their bids with job info, admin endpoints working, authorization controls working, database persistence confirmed. Frontend integration should now work since backend APIs are returning proper data."
