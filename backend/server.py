@@ -657,7 +657,18 @@ async def get_my_bids(current_user: User = Depends(require_supplier)):
     
     return enriched_bids
 
-# Award bid endpoint
+class Notification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    title: str
+    message: str
+    type: str  # bid_awarded, bid_rejected, job_posted, etc.
+    read: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    related_job_id: Optional[str] = None
+    related_bid_id: Optional[str] = None
+
+# Award bid endpoint - Enhanced
 @api_router.post("/jobs/{job_id}/award/{bid_id}")
 async def award_bid(job_id: str, bid_id: str, current_user: User = Depends(require_buyer)):
     # Check if user owns the job
@@ -674,13 +685,56 @@ async def award_bid(job_id: str, bid_id: str, current_user: User = Depends(requi
     await db.bids.update_one({"id": bid_id}, {"$set": {"status": "awarded"}})
     await db.jobs.update_one({"id": job_id}, {"$set": {"status": "awarded"}})
     
-    # Reject other bids
-    await db.bids.update_many(
-        {"job_id": job_id, "id": {"$ne": bid_id}},
-        {"$set": {"status": "rejected"}}
+    # Create notification for awarded supplier
+    winning_notification = Notification(
+        user_id=bid["supplier_id"],
+        title="🎉 Congratulations! Your bid was awarded",
+        message=f"Your bid for '{job['title']}' has been accepted. The buyer will contact you soon.",
+        type="bid_awarded",
+        related_job_id=job_id,
+        related_bid_id=bid_id
     )
+    await db.notifications.insert_one(winning_notification.dict())
     
-    return {"message": "Bid awarded successfully"}
+    # Reject other bids and notify suppliers
+    other_bids = await db.bids.find({"job_id": job_id, "id": {"$ne": bid_id}}).to_list(100)
+    for other_bid in other_bids:
+        await db.bids.update_one({"id": other_bid["id"]}, {"$set": {"status": "rejected"}})
+        
+        # Create notification for rejected suppliers
+        rejection_notification = Notification(
+            user_id=other_bid["supplier_id"],
+            title="Bid Update",
+            message=f"Your bid for '{job['title']}' was not selected this time. Keep bidding on other projects!",
+            type="bid_rejected",
+            related_job_id=job_id,
+            related_bid_id=other_bid["id"]
+        )
+        await db.notifications.insert_one(rejection_notification.dict())
+    
+    return {"message": "Bid awarded successfully", "notifications_sent": len(other_bids) + 1}
+
+# Notification endpoints
+@api_router.get("/notifications")
+async def get_notifications(current_user: User = Depends(get_current_user)):
+    notifications = await db.notifications.find({"user_id": current_user.id}).sort("created_at", -1).to_list(50)
+    return [Notification(**notification) for notification in notifications]
+
+@api_router.post("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.notifications.update_one(
+        {"id": notification_id, "user_id": current_user.id},
+        {"$set": {"read": True}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"message": "Notification marked as read"}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_notifications_count(current_user: User = Depends(get_current_user)):
+    count = await db.notifications.count_documents({"user_id": current_user.id, "read": False})
+    return {"unread_count": count}
 
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
