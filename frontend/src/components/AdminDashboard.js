@@ -19,6 +19,13 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Detail view states
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedBid, setSelectedBid] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();
