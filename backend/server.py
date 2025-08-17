@@ -628,12 +628,15 @@ async def get_job_bids(job_id: str, current_user: User = Depends(get_current_use
     
     bids = await db.bids.find({"job_id": job_id}).sort("created_at", -1).to_list(100)
     
-    # Enrich with supplier info
+    # Enrich with supplier info and convert ObjectIds
     enriched_bids = []
     for bid in bids:
-        supplier = await db.users.find_one({"id": bid["supplier_id"]})
+        # Remove MongoDB ObjectId if present
+        bid_dict = {k: v for k, v in bid.items() if k != '_id'}
+        
+        supplier = await db.users.find_one({"id": bid_dict["supplier_id"]})
         bid_with_supplier = {
-            **bid,
+            **bid_dict,
             "supplier_info": {
                 "company_name": supplier["company_name"],
                 "contact_phone": supplier["contact_phone"]
