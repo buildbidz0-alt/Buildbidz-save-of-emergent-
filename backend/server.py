@@ -14,6 +14,10 @@ import razorpay
 import json
 import logging
 from pathlib import Path
+import secrets
+import smtplib
+from email.mime.text import MimeType
+from email.mime.multipart import MimeMultipart
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -31,7 +35,15 @@ JWT_ALGORITHM = "HS256"
 
 # Razorpay client
 razorpay_client = razorpay.Client(auth=(os.environ['RAZORPAY_KEY_ID'], os.environ['RAZORPAY_KEY_SECRET']))
-SUBSCRIPTION_AMOUNT = int(os.environ['SUBSCRIPTION_AMOUNT'])  # ₹5000 in paise
+SUBSCRIPTION_AMOUNT = int(os.environ['SUBSCRIPTION_AMOUNT'])  # ₹5000 per month in paise
+
+# Admin credentials
+ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
+ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
+
+# Support contact
+SUPPORT_PHONE = os.environ['SUPPORT_PHONE']
+SUPPORT_EMAIL = os.environ['SUPPORT_EMAIL']
 
 # Create the main app
 app = FastAPI(title="BuildBidz API", version="1.0.0")
@@ -65,9 +77,28 @@ class User(BaseModel):
     gst_number: Optional[str] = None
     address: Optional[str] = None
     is_verified: bool = False
-    subscription_status: str = "inactive"  # inactive, active, expired
+    subscription_status: str = "trial"  # trial, active, expired, inactive
     subscription_expires_at: Optional[datetime] = None
+    trial_expires_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserUpdate(BaseModel):
+    company_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    gst_number: Optional[str] = None
+    address: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class PasswordReset(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    email: EmailStr
+    reset_code: str
+    new_password: str
 
 class JobCategory(str):
     MATERIAL = "material"
@@ -166,12 +197,26 @@ async def require_supplier(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Only suppliers can access this resource")
     return current_user
 
-async def require_active_subscription(current_user: User = Depends(require_buyer)):
-    if current_user.subscription_status != "active" or (
-        current_user.subscription_expires_at and current_user.subscription_expires_at < datetime.utcnow()
-    ):
-        raise HTTPException(status_code=402, detail="Active subscription required")
+async def require_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
+
+async def require_active_subscription_or_trial(current_user: User = Depends(require_buyer)):
+    # Check if user is in trial period
+    if current_user.subscription_status == "trial":
+        if not current_user.trial_expires_at or current_user.trial_expires_at > datetime.utcnow():
+            return current_user
+    
+    # Check if user has active subscription
+    if current_user.subscription_status == "active":
+        if not current_user.subscription_expires_at or current_user.subscription_expires_at > datetime.utcnow():
+            return current_user
+    
+    raise HTTPException(status_code=402, detail="Active subscription or trial required")
+
+def generate_reset_code():
+    return str(secrets.randbelow(1000000)).zfill(6)
 
 # Auth endpoints
 @api_router.post("/auth/register")
@@ -181,8 +226,10 @@ async def register(user_data: UserCreate):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
+    # Create user with 1-month free trial for buyers
     hashed_password = hash_password(user_data.password)
+    trial_expires = datetime.utcnow() + timedelta(days=30) if user_data.role == UserRole.BUYER else None
+    
     user = User(
         email=user_data.email,
         company_name=user_data.company_name,
@@ -190,7 +237,9 @@ async def register(user_data: UserCreate):
         role=user_data.role,
         gst_number=user_data.gst_number,
         address=user_data.address,
-        is_verified=user_data.role == UserRole.SUPPLIER  # Auto-verify suppliers for MVP
+        is_verified=user_data.role == UserRole.SUPPLIER,
+        subscription_status="trial" if user_data.role == UserRole.BUYER else "active",
+        trial_expires_at=trial_expires
     )
     
     await db.users.insert_one({**user.dict(), "password": hashed_password})
@@ -207,6 +256,24 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login")
 async def login(login_data: UserLogin):
+    # Check for admin login
+    if login_data.email == ADMIN_EMAIL and login_data.password == ADMIN_PASSWORD:
+        admin_user = User(
+            id="admin",
+            email=ADMIN_EMAIL,
+            company_name="BuildBidz Admin",
+            contact_phone=SUPPORT_PHONE,
+            role=UserRole.ADMIN,
+            is_verified=True,
+            subscription_status="active"
+        )
+        access_token = create_access_token(data={"sub": "admin"})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": admin_user
+        }
+    
     user = await db.users.find_one({"email": login_data.email})
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -223,7 +290,163 @@ async def login(login_data: UserLogin):
         "user": user_obj
     }
 
-# Payment endpoints
+# Password reset endpoints
+@api_router.post("/auth/forgot-password")
+async def forgot_password(reset_data: PasswordReset):
+    user = await db.users.find_one({"email": reset_data.email})
+    if not user:
+        # Don't reveal if email exists or not
+        return {"message": "If the email exists, a reset code has been sent"}
+    
+    reset_code = generate_reset_code()
+    expires_at = datetime.utcnow() + timedelta(minutes=15)
+    
+    # Store reset code in database
+    await db.password_resets.update_one(
+        {"email": reset_data.email},
+        {
+            "$set": {
+                "reset_code": reset_code,
+                "expires_at": expires_at,
+                "used": False
+            }
+        },
+        upsert=True
+    )
+    
+    # In a real app, send email with reset code
+    # For now, we'll just return success (code will be in database)
+    return {"message": "If the email exists, a reset code has been sent"}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(reset_data: PasswordResetConfirm):
+    # Check reset code
+    reset_record = await db.password_resets.find_one({
+        "email": reset_data.email,
+        "reset_code": reset_data.reset_code,
+        "used": False
+    })
+    
+    if not reset_record or reset_record["expires_at"] < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
+    
+    # Update user password
+    hashed_password = hash_password(reset_data.new_password)
+    result = await db.users.update_one(
+        {"email": reset_data.email},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Mark reset code as used
+    await db.password_resets.update_one(
+        {"email": reset_data.email, "reset_code": reset_data.reset_code},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password reset successfully"}
+
+# User profile and settings
+@api_router.get("/profile", response_model=User)
+async def get_profile(current_user: User = Depends(get_current_user)):
+    if current_user.id == "admin":
+        return current_user
+    
+    # Refresh user data from database
+    user_data = await db.users.find_one({"id": current_user.id})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return User(**user_data)
+
+@api_router.put("/profile")
+async def update_profile(profile_data: UserUpdate, current_user: User = Depends(get_current_user)):
+    if current_user.id == "admin":
+        raise HTTPException(status_code=403, detail="Admin profile cannot be updated")
+    
+    update_data = {k: v for k, v in profile_data.dict().items() if v is not None}
+    
+    if update_data:
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": update_data}
+        )
+    
+    return {"message": "Profile updated successfully"}
+
+@api_router.post("/auth/change-password")
+async def change_password(password_data: PasswordChange, current_user: User = Depends(get_current_user)):
+    if current_user.id == "admin":
+        raise HTTPException(status_code=403, detail="Admin password cannot be changed")
+    
+    # Get current user from database
+    user = await db.users.find_one({"id": current_user.id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Update password
+    hashed_password = hash_password(password_data.new_password)
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
+# Admin endpoints
+@api_router.get("/admin/users")
+async def get_all_users(current_user: User = Depends(require_admin)):
+    users = await db.users.find().to_list(1000)
+    return [User(**user) for user in users]
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, current_user: User = Depends(require_admin)):
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Also delete user's jobs and bids
+    await db.jobs.delete_many({"posted_by": user_id})
+    await db.bids.delete_many({"supplier_id": user_id})
+    
+    return {"message": "User deleted successfully"}
+
+@api_router.get("/admin/jobs")
+async def get_all_jobs(current_user: User = Depends(require_admin)):
+    jobs = await db.jobs.find().sort("created_at", -1).to_list(1000)
+    return [JobPost(**job) for job in jobs]
+
+@api_router.delete("/admin/jobs/{job_id}")
+async def delete_job(job_id: str, current_user: User = Depends(require_admin)):
+    result = await db.jobs.delete_one({"id": job_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Also delete related bids
+    await db.bids.delete_many({"job_id": job_id})
+    
+    return {"message": "Job deleted successfully"}
+
+@api_router.get("/admin/bids")
+async def get_all_bids(current_user: User = Depends(require_admin)):
+    bids = await db.bids.find().sort("created_at", -1).to_list(1000)
+    return bids
+
+@api_router.delete("/admin/bids/{bid_id}")
+async def delete_bid(bid_id: str, current_user: User = Depends(require_admin)):
+    result = await db.bids.delete_one({"id": bid_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bid not found")
+    
+    return {"message": "Bid deleted successfully"}
+
+# Payment endpoints - Updated for monthly billing
 @api_router.post("/payments/create-subscription-order")
 async def create_subscription_order(current_user: User = Depends(require_buyer)):
     try:
@@ -261,14 +484,15 @@ async def verify_subscription_payment(
             'razorpay_signature': signature
         })
         
-        # Update user subscription
-        expires_at = datetime.utcnow() + timedelta(days=365)  # 1 year subscription
+        # Update user subscription - monthly billing
+        expires_at = datetime.utcnow() + timedelta(days=30)  # 1 month subscription
         await db.users.update_one(
             {"id": current_user.id},
             {
                 "$set": {
                     "subscription_status": "active",
-                    "subscription_expires_at": expires_at
+                    "subscription_expires_at": expires_at,
+                    "trial_expires_at": None  # Clear trial
                 }
             }
         )
@@ -284,9 +508,9 @@ async def verify_subscription_payment(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
 
-# Job posting endpoints
+# Job posting endpoints - Updated for trial support
 @api_router.post("/jobs", response_model=JobPost)
-async def create_job(job_data: JobPostCreate, current_user: User = Depends(require_active_subscription)):
+async def create_job(job_data: JobPostCreate, current_user: User = Depends(require_active_subscription_or_trial)):
     job = JobPost(**job_data.dict(), posted_by=current_user.id)
     await db.jobs.insert_one(job.dict())
     return job
@@ -390,14 +614,21 @@ async def award_bid(job_id: str, bid_id: str, current_user: User = Depends(requi
     
     return {"message": "Bid awarded successfully"}
 
-# User profile endpoint
-@api_router.get("/profile", response_model=User)
-async def get_profile(current_user: User = Depends(get_current_user)):
-    return current_user
-
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
-    if current_user.role == UserRole.BUYER:
+    if current_user.role == UserRole.ADMIN:
+        total_users = await db.users.count_documents({})
+        total_jobs = await db.jobs.count_documents({})
+        total_bids = await db.bids.count_documents({})
+        active_jobs = await db.jobs.count_documents({"status": "open"})
+        
+        return {
+            "total_users": total_users,
+            "total_jobs": total_jobs,
+            "total_bids": total_bids,
+            "active_jobs": active_jobs
+        }
+    elif current_user.role == UserRole.BUYER:
         total_jobs = await db.jobs.count_documents({"posted_by": current_user.id})
         active_jobs = await db.jobs.count_documents({"posted_by": current_user.id, "status": "open"})
         total_bids = await db.bids.count_documents({"job_id": {"$in": [job["id"] async for job in db.jobs.find({"posted_by": current_user.id})]}})
@@ -406,7 +637,8 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
             "total_jobs": total_jobs,
             "active_jobs": active_jobs,
             "total_bids_received": total_bids,
-            "subscription_status": current_user.subscription_status
+            "subscription_status": current_user.subscription_status,
+            "trial_expires_at": current_user.trial_expires_at
         }
     else:  # Supplier
         total_bids = await db.bids.count_documents({"supplier_id": current_user.id})
@@ -417,6 +649,14 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
             "won_bids": won_bids,
             "win_rate": f"{(won_bids/total_bids*100):.1f}%" if total_bids > 0 else "0%"
         }
+
+# Support info endpoint
+@api_router.get("/support-info")
+async def get_support_info():
+    return {
+        "phone": SUPPORT_PHONE,
+        "email": SUPPORT_EMAIL
+    }
 
 # Include the router in the main app
 app.include_router(api_router)
