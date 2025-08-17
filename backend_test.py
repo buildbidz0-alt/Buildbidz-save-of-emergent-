@@ -707,6 +707,450 @@ class BuildBidzAPITester:
             token=self.supplier_token
         )
 
+    def test_enhanced_admin_features(self):
+        """Test enhanced admin panel features"""
+        print("\n" + "="*50)
+        print("TESTING ENHANCED ADMIN FEATURES")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ Cannot test enhanced admin features - admin login failed")
+            return
+        
+        # Test admin getting detailed user info
+        if self.buyer_user:
+            success, response = self.run_test(
+                "Admin Get User Details",
+                "GET",
+                f"admin/users/{self.buyer_user['id']}/details",
+                200,
+                token=self.admin_token
+            )
+            
+            if success and response:
+                print(f"   User details retrieved for: {response.get('user', {}).get('company_name')}")
+                print(f"   Jobs posted: {response.get('jobs_posted', 0)}")
+                print(f"   Bids submitted: {response.get('bids_submitted', 0)}")
+        
+        # Test admin delete functionality (we'll test with a new user to avoid breaking other tests)
+        test_user_data = {
+            "email": f"delete_test_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "Delete Test Co",
+            "contact_phone": "+91-9876543213",
+            "role": "supplier",
+            "gst_number": "29DELETE1234F1Z5",
+            "address": "Delete Test Street"
+        }
+        
+        success, response = self.run_test(
+            "Create Test User for Deletion",
+            "POST",
+            "auth/register",
+            200,
+            data=test_user_data
+        )
+        
+        if success and response:
+            test_user_id = response['user']['id']
+            
+            # Test admin delete user
+            self.run_test(
+                "Admin Delete User",
+                "DELETE",
+                f"admin/users/{test_user_id}",
+                200,
+                token=self.admin_token
+            )
+
+    def test_job_posting_with_trial(self):
+        """Test job posting with active trial"""
+        print("\n" + "="*50)
+        print("TESTING JOB POSTING WITH TRIAL")
+        print("="*50)
+        
+        # Create a new buyer with trial
+        trial_buyer_data = {
+            "email": f"job_trial_buyer_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "Job Trial Construction Co",
+            "contact_phone": "+91-9876543214",
+            "role": "buyer",
+            "gst_number": "29JOBTRIAL1234F1Z5",
+            "address": "123 Job Trial Street, Mumbai"
+        }
+        
+        success, response = self.run_test(
+            "Create Trial Buyer for Job Posting",
+            "POST",
+            "auth/register",
+            200,
+            data=trial_buyer_data
+        )
+        
+        if success and response:
+            trial_token = response['access_token']
+            
+            # Test job posting with trial (should work)
+            job_data = {
+                "title": "Trial Construction Job",
+                "category": "material",
+                "description": "Need cement and steel for trial construction project",
+                "quantity": "50 bags cement, 25 tons steel",
+                "location": "Mumbai, Maharashtra",
+                "delivery_timeline": "1 week",
+                "budget_range": "₹2,50,000 - ₹3,50,000"
+            }
+            
+            success, job_response = self.run_test(
+                "Job Posting With Trial",
+                "POST",
+                "jobs",
+                200,
+                data=job_data,
+                token=trial_token
+            )
+            
+            if success and job_response:
+                self.job_id = job_response['id']
+                print(f"   Job created with ID: {self.job_id}")
+
+    def test_bidding_and_awarding_system(self):
+        """Test enhanced bidding and awarding system"""
+        print("\n" + "="*50)
+        print("TESTING BIDDING AND AWARDING SYSTEM")
+        print("="*50)
+        
+        if not self.job_id or not self.supplier_token:
+            print("❌ Cannot test bidding - no job or supplier token")
+            return
+        
+        # Test submitting a bid
+        bid_data = {
+            "price_quote": 300000.0,
+            "delivery_estimate": "5 days",
+            "notes": "High quality materials with fast delivery"
+        }
+        
+        success, response = self.run_test(
+            "Submit Bid",
+            "POST",
+            f"jobs/{self.job_id}/bids",
+            200,
+            data=bid_data,
+            token=self.supplier_token
+        )
+        
+        if success and response:
+            self.bid_id = response['id']
+            print(f"   Bid submitted with ID: {self.bid_id}")
+        
+        # Test getting job bids (as job owner)
+        # We need to use the trial buyer token who created the job
+        trial_buyer_data = {
+            "email": f"job_trial_buyer_{int(time.time()-1)}@test.com",
+            "password": "TestPass123!"
+        }
+        
+        success, login_response = self.run_test(
+            "Login Trial Buyer for Bid Management",
+            "POST",
+            "auth/login",
+            200,
+            data=trial_buyer_data
+        )
+        
+        if success and login_response:
+            trial_buyer_token = login_response['access_token']
+            
+            # Get job bids
+            success, bids_response = self.run_test(
+                "Get Job Bids",
+                "GET",
+                f"jobs/{self.job_id}/bids",
+                200,
+                token=trial_buyer_token
+            )
+            
+            if success and bids_response and len(bids_response) > 0:
+                print(f"   Found {len(bids_response)} bids for the job")
+                
+                # Test awarding the bid
+                if self.bid_id:
+                    success, award_response = self.run_test(
+                        "Award Bid",
+                        "POST",
+                        f"jobs/{self.job_id}/award/{self.bid_id}",
+                        200,
+                        token=trial_buyer_token
+                    )
+                    
+                    if success and award_response:
+                        notifications_sent = award_response.get('notifications_sent', 0)
+                        print(f"   Bid awarded successfully, {notifications_sent} notifications sent")
+
+    def test_notification_system(self):
+        """Test notification system"""
+        print("\n" + "="*50)
+        print("TESTING NOTIFICATION SYSTEM")
+        print("="*50)
+        
+        if not self.supplier_token:
+            print("❌ Cannot test notifications - no supplier token")
+            return
+        
+        # Test getting notifications
+        success, response = self.run_test(
+            "Get Notifications (Supplier)",
+            "GET",
+            "notifications",
+            200,
+            token=self.supplier_token
+        )
+        
+        if success and response:
+            print(f"   Found {len(response)} notifications")
+            
+            # Test unread count
+            success, count_response = self.run_test(
+                "Get Unread Notifications Count",
+                "GET",
+                "notifications/unread-count",
+                200,
+                token=self.supplier_token
+            )
+            
+            if success and count_response:
+                unread_count = count_response.get('unread_count', 0)
+                print(f"   Unread notifications: {unread_count}")
+                
+                # If there are notifications, test marking one as read
+                if response and len(response) > 0:
+                    notification_id = response[0]['id']
+                    self.run_test(
+                        "Mark Notification as Read",
+                        "POST",
+                        f"notifications/{notification_id}/read",
+                        200,
+                        token=self.supplier_token
+                    )
+
+    def test_chat_system(self):
+        """Test chat system functionality"""
+        print("\n" + "="*50)
+        print("TESTING CHAT SYSTEM")
+        print("="*50)
+        
+        if not self.job_id or not self.supplier_token:
+            print("❌ Cannot test chat system - no awarded job or supplier token")
+            return
+        
+        # Test getting user chats
+        success, response = self.run_test(
+            "Get User Chats (Supplier)",
+            "GET",
+            "chats",
+            200,
+            token=self.supplier_token
+        )
+        
+        if success and response:
+            print(f"   Found {len(response)} active chats")
+        
+        # Test getting job chat messages
+        success, messages_response = self.run_test(
+            "Get Job Chat Messages",
+            "GET",
+            f"jobs/{self.job_id}/chat",
+            200,
+            token=self.supplier_token
+        )
+        
+        if success and messages_response:
+            print(f"   Found {len(messages_response)} chat messages")
+        
+        # Test sending a message
+        message_data = {
+            "message": "Thank you for awarding the bid! When can we start the project?"
+        }
+        
+        success, send_response = self.run_test(
+            "Send Chat Message",
+            "POST",
+            f"jobs/{self.job_id}/chat",
+            200,
+            data=message_data,
+            token=self.supplier_token
+        )
+        
+        if success and send_response:
+            print("   Chat message sent successfully")
+        
+        # Test marking chat as read
+        self.run_test(
+            "Mark Chat as Read",
+            "POST",
+            f"chats/{self.job_id}/mark-read",
+            200,
+            token=self.supplier_token
+        )
+
+    def test_admin_chat_management(self):
+        """Test admin chat management"""
+        print("\n" + "="*50)
+        print("TESTING ADMIN CHAT MANAGEMENT")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ Cannot test admin chat management - admin login failed")
+            return
+        
+        # Test admin getting all chats
+        success, response = self.run_test(
+            "Admin Get All Chats",
+            "GET",
+            "admin/chats",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and response:
+            print(f"   Admin found {len(response)} chat activities")
+            for chat in response[:3]:  # Show first 3 chats
+                print(f"   - Job: {chat.get('job_title')} ({chat.get('message_count')} messages)")
+
+    def test_enhanced_admin_delete_operations(self):
+        """Test enhanced admin delete operations"""
+        print("\n" + "="*50)
+        print("TESTING ENHANCED ADMIN DELETE OPERATIONS")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ Cannot test admin delete operations - admin login failed")
+            return
+        
+        # Create test data for deletion
+        test_supplier_data = {
+            "email": f"delete_supplier_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "Delete Supplier Co",
+            "contact_phone": "+91-9876543215",
+            "role": "supplier",
+            "gst_number": "29DELSUP1234F1Z5",
+            "address": "Delete Supplier Street"
+        }
+        
+        success, response = self.run_test(
+            "Create Test Supplier for Deletion",
+            "POST",
+            "auth/register",
+            200,
+            data=test_supplier_data
+        )
+        
+        if success and response:
+            test_supplier_id = response['user']['id']
+            test_supplier_token = response['access_token']
+            
+            # Create a test job and bid for deletion testing
+            test_buyer_data = {
+                "email": f"delete_buyer_{int(time.time())}@test.com",
+                "password": "TestPass123!",
+                "company_name": "Delete Buyer Co",
+                "contact_phone": "+91-9876543216",
+                "role": "buyer",
+                "gst_number": "29DELBUY1234F1Z5",
+                "address": "Delete Buyer Street"
+            }
+            
+            success, buyer_response = self.run_test(
+                "Create Test Buyer for Deletion",
+                "POST",
+                "auth/register",
+                200,
+                data=test_buyer_data
+            )
+            
+            if success and buyer_response:
+                test_buyer_token = buyer_response['access_token']
+                
+                # Create a job
+                job_data = {
+                    "title": "Delete Test Job",
+                    "category": "material",
+                    "description": "Job for deletion testing",
+                    "location": "Test Location",
+                    "delivery_timeline": "1 week",
+                    "budget_range": "₹1,00,000"
+                }
+                
+                success, job_response = self.run_test(
+                    "Create Test Job for Deletion",
+                    "POST",
+                    "jobs",
+                    200,
+                    data=job_data,
+                    token=test_buyer_token
+                )
+                
+                if success and job_response:
+                    test_job_id = job_response['id']
+                    
+                    # Create a bid
+                    bid_data = {
+                        "price_quote": 90000.0,
+                        "delivery_estimate": "3 days",
+                        "notes": "Test bid for deletion"
+                    }
+                    
+                    success, bid_response = self.run_test(
+                        "Create Test Bid for Deletion",
+                        "POST",
+                        f"jobs/{test_job_id}/bids",
+                        200,
+                        data=bid_data,
+                        token=test_supplier_token
+                    )
+                    
+                    if success and bid_response:
+                        test_bid_id = bid_response['id']
+                        
+                        # Test admin delete bid
+                        self.run_test(
+                            "Admin Delete Bid",
+                            "DELETE",
+                            f"admin/bids/{test_bid_id}",
+                            200,
+                            token=self.admin_token
+                        )
+                    
+                    # Test admin delete job
+                    self.run_test(
+                        "Admin Delete Job",
+                        "DELETE",
+                        f"admin/jobs/{test_job_id}",
+                        200,
+                        token=self.admin_token
+                    )
+                
+                # Test admin delete buyer
+                self.run_test(
+                    "Admin Delete Buyer",
+                    "DELETE",
+                    f"admin/users/{buyer_response['user']['id']}",
+                    200,
+                    token=self.admin_token
+                )
+            
+            # Test admin delete supplier
+            self.run_test(
+                "Admin Delete Supplier",
+                "DELETE",
+                f"admin/users/{test_supplier_id}",
+                200,
+                token=self.admin_token
+            )
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "="*60)
