@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class BuildBidzAPITester:
-    def __init__(self, base_url="https://45a54939-7826-473a-9ce5-433a2fae974a.preview.emergentagent.com"):
+    def __init__(self, base_url="https://construct-connect.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.buyer_token = None
@@ -1190,7 +1190,7 @@ class BuildBidzAPITester:
 
 def main():
     print("🚀 Starting BuildBidz API Testing...")
-    print(f"Backend URL: https://45a54939-7826-473a-9ce5-433a2fae974a.preview.emergentagent.com")
+    print(f"Backend URL: https://construct-connect.preview.emergentagent.com")
     
     tester = BuildBidzAPITester()
     
