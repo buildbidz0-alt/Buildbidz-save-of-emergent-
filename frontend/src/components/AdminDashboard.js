@@ -115,6 +115,60 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
+  // Detail view handlers
+  const handleViewUser = async (userId) => {
+    setDetailLoading(true);
+    try {
+      const response = await axios.get(`${API}/admin/users/${userId}/details`);
+      setSelectedUser(response.data);
+      setSelectedJob(null);
+      setSelectedBid(null);
+      setShowDetailModal(true);
+    } catch (error) {
+      alert('Failed to fetch user details: ' + (error.response?.data?.detail || 'Unknown error'));
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleViewJob = async (job) => {
+    setDetailLoading(true);
+    try {
+      // For job details, we can use the job data we already have
+      // but we might want to fetch additional data like bids
+      const bidsResponse = await axios.get(`${API}/jobs/${job.id}/bids`);
+      setSelectedJob({
+        ...job,
+        bids: bidsResponse.data
+      });
+      setSelectedUser(null);
+      setSelectedBid(null);
+      setShowDetailModal(true);
+    } catch (error) {
+      // If bids fetch fails, still show job details
+      setSelectedJob(job);
+      setSelectedUser(null);
+      setSelectedBid(null);
+      setShowDetailModal(true);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleViewBid = async (bid) => {
+    setSelectedBid(bid);
+    setSelectedUser(null);
+    setSelectedJob(null);
+    setShowDetailModal(true);
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedUser(null);
+    setSelectedJob(null);
+    setSelectedBid(null);
+  };
+
   const filteredUsers = users.filter(user => 
     user.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
