@@ -45,6 +45,7 @@ const Dashboard = () => {
     { name: 'Dashboard', href: '/dashboard', current: true },
     { name: 'Jobs', href: '/jobs', current: false },
     { name: 'Bids', href: '/bids', current: false },
+    { name: 'Messages', href: '/chat', current: false },
     { name: 'Settings', href: '/settings', current: false },
     ...(user?.role === 'buyer' ? [{ name: 'Subscription', href: '/subscription', current: false }] : [])
   ];
