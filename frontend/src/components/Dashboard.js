@@ -6,6 +6,7 @@ import {
   DollarSign, Users, Award, AlertTriangle, Menu, X, Settings
 } from 'lucide-react';
 import axios from 'axios';
+import NotificationBell from './NotificationBell';
 
 const Dashboard = () => {
   const { user, logout, API } = useContext(AuthContext);
