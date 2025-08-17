@@ -373,7 +373,7 @@ const BidsPage = () => {
 };
 
 // Bid Card Component for received bids
-const BidCard = ({ bid, onAward, canAward }) => {
+const BidCard = ({ bid, onAward, canAward, jobId }) => {
   return (
     <div className="glass rounded-lg p-6">
       <div className="flex items-start justify-between mb-4">
@@ -419,7 +419,7 @@ const BidCard = ({ bid, onAward, canAward }) => {
         <div className="flex space-x-2">
           {bid.status === 'awarded' && (
             <Link
-              to={`/chat?job_id=${job_id}`}
+              to={`/chat?job_id=${jobId}`}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center"
             >
               <MessageCircle className="h-4 w-4 mr-2" />
