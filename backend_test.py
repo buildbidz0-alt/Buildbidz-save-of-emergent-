@@ -735,15 +735,22 @@ class BuildBidzAPITester:
 
 def main():
     print("🚀 Starting BuildBidz API Testing...")
-    print(f"Backend URL: https://conmarket.preview.emergentagent.com")
+    print(f"Backend URL: https://45a54939-7826-473a-9ce5-433a2fae974a.preview.emergentagent.com")
     
     tester = BuildBidzAPITester()
     
     # Run all tests
     tester.test_user_registration()
     tester.test_user_login()
+    tester.test_admin_login()
     tester.test_profile_access()
     tester.test_dashboard_stats()
+    tester.test_admin_dashboard_access()
+    tester.test_password_management()
+    tester.test_user_profile_management()
+    tester.test_support_info()
+    tester.test_subscription_pricing()
+    tester.test_trial_system()
     tester.test_subscription_system()
     tester.test_job_posting_without_subscription()
     tester.test_job_browsing()
