@@ -461,15 +461,13 @@ async def get_all_jobs(current_user: User = Depends(require_admin)):
     enriched_jobs = []
     for job in jobs:
         user = await db.users.find_one({"id": job["posted_by"]})
-        job_with_user = {
-            **job,
-            "posted_by_info": {
-                "company_name": user["company_name"],
-                "email": user["email"],
-                "contact_phone": user["contact_phone"]
-            } if user else None
-        }
-        enriched_jobs.append(job_with_user)
+        job_dict = dict(job)  # Convert to regular dict
+        job_dict["posted_by_info"] = {
+            "company_name": user["company_name"],
+            "email": user["email"],
+            "contact_phone": user["contact_phone"]
+        } if user else None
+        enriched_jobs.append(job_dict)
     
     return enriched_jobs
 
