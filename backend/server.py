@@ -741,6 +741,190 @@ async def get_unread_notifications_count(current_user: User = Depends(get_curren
     count = await db.notifications.count_documents({"user_id": current_user.id, "read": False})
     return {"unread_count": count}
 
+# Chat endpoints
+@api_router.get("/jobs/{job_id}/chat")
+async def get_job_chat(job_id: str, current_user: User = Depends(get_current_user)):
+    # Check if user is involved in this job (either buyer, awarded supplier, or admin)
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    is_authorized = False
+    
+    # Check if user is the job poster
+    if job["posted_by"] == current_user.id:
+        is_authorized = True
+    
+    # Check if user is the awarded supplier
+    awarded_bid = await db.bids.find_one({"job_id": job_id, "status": "awarded"})
+    if awarded_bid and awarded_bid["supplier_id"] == current_user.id:
+        is_authorized = True
+    
+    # Admin can access all chats
+    if current_user.role == UserRole.ADMIN:
+        is_authorized = True
+    
+    if not is_authorized:
+        raise HTTPException(status_code=403, detail="Not authorized to access this chat")
+    
+    # Get chat messages
+    messages = await db.chat_messages.find({"job_id": job_id}).sort("created_at", 1).to_list(1000)
+    
+    # Enrich with sender info
+    enriched_messages = []
+    for message in messages:
+        sender = await db.users.find_one({"id": message["sender_id"]})
+        message_with_sender = {
+            **message,
+            "sender_info": {
+                "company_name": sender["company_name"],
+                "role": sender["role"]
+            } if sender else None
+        }
+        enriched_messages.append(message_with_sender)
+    
+    return enriched_messages
+
+@api_router.post("/jobs/{job_id}/chat")
+async def send_message(job_id: str, message_data: ChatMessageCreate, current_user: User = Depends(get_current_user)):
+    # Check if user is involved in this job
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    is_authorized = False
+    receiver_id = None
+    
+    # Determine receiver based on sender
+    if job["posted_by"] == current_user.id:
+        # Buyer is sending message - send to awarded supplier
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "status": "awarded"})
+        if awarded_bid:
+            receiver_id = awarded_bid["supplier_id"]
+            is_authorized = True
+    else:
+        # Check if current user is awarded supplier
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id, "status": "awarded"})
+        if awarded_bid:
+            receiver_id = job["posted_by"]
+            is_authorized = True
+    
+    # Admin can send messages to anyone
+    if current_user.role == UserRole.ADMIN:
+        is_authorized = True
+        # For admin, send to job poster by default
+        if not receiver_id:
+            receiver_id = job["posted_by"]
+    
+    if not is_authorized or not receiver_id:
+        raise HTTPException(status_code=403, detail="Not authorized to send messages in this chat")
+    
+    # Create message
+    message = ChatMessage(
+        job_id=job_id,
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        message=message_data.message,
+        file_url=message_data.file_url
+    )
+    
+    await db.chat_messages.insert_one(message.dict())
+    
+    # Create notification for receiver
+    notification = Notification(
+        user_id=receiver_id,
+        title="New Message",
+        message=f"You have a new message regarding '{job['title']}'",
+        type="chat_message",
+        related_job_id=job_id
+    )
+    await db.notifications.insert_one(notification.dict())
+    
+    return {"message": "Message sent successfully", "chat_message": message}
+
+@api_router.get("/admin/chats")
+async def get_all_chats(current_user: User = Depends(require_admin)):
+    # Get all jobs with their chat activity
+    jobs = await db.jobs.find({"status": "awarded"}).to_list(1000)
+    
+    chat_activity = []
+    for job in jobs:
+        message_count = await db.chat_messages.count_documents({"job_id": job["id"]})
+        if message_count > 0:
+            last_message = await db.chat_messages.find_one(
+                {"job_id": job["id"]}, 
+                sort=[("created_at", -1)]
+            )
+            
+            # Get participants
+            buyer = await db.users.find_one({"id": job["posted_by"]})
+            awarded_bid = await db.bids.find_one({"job_id": job["id"], "status": "awarded"})
+            supplier = await db.users.find_one({"id": awarded_bid["supplier_id"]}) if awarded_bid else None
+            
+            chat_activity.append({
+                "job_id": job["id"],
+                "job_title": job["title"],
+                "message_count": message_count,
+                "last_message_at": last_message["created_at"] if last_message else None,
+                "participants": {
+                    "buyer": {"company_name": buyer["company_name"], "email": buyer["email"]} if buyer else None,
+                    "supplier": {"company_name": supplier["company_name"], "email": supplier["email"]} if supplier else None
+                }
+            })
+    
+    return sorted(chat_activity, key=lambda x: x["last_message_at"] or x["job_id"], reverse=True)
+
+# Get user's active chats
+@api_router.get("/chats")
+async def get_user_chats(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ADMIN:
+        return await get_all_chats(current_user)
+    
+    # Get jobs where user is involved and job is awarded
+    user_chats = []
+    
+    if current_user.role == UserRole.BUYER:
+        # Get jobs posted by this buyer that are awarded
+        jobs = await db.jobs.find({"posted_by": current_user.id, "status": "awarded"}).to_list(100)
+    else:
+        # Get jobs where this supplier has winning bids
+        awarded_bids = await db.bids.find({"supplier_id": current_user.id, "status": "awarded"}).to_list(100)
+        job_ids = [bid["job_id"] for bid in awarded_bids]
+        jobs = await db.jobs.find({"id": {"$in": job_ids}}).to_list(100)
+    
+    for job in jobs:
+        message_count = await db.chat_messages.count_documents({"job_id": job["id"]})
+        unread_count = await db.chat_messages.count_documents({
+            "job_id": job["id"], 
+            "receiver_id": current_user.id, 
+            "read": False
+        })
+        
+        last_message = await db.chat_messages.find_one(
+            {"job_id": job["id"]}, 
+            sort=[("created_at", -1)]
+        )
+        
+        user_chats.append({
+            "job_id": job["id"],
+            "job_title": job["title"],
+            "message_count": message_count,
+            "unread_count": unread_count,
+            "last_message_at": last_message["created_at"] if last_message else None,
+            "last_message": last_message["message"] if last_message else None
+        })
+    
+    return sorted(user_chats, key=lambda x: x["last_message_at"] or x["job_id"], reverse=True)
+
+@api_router.post("/chats/{job_id}/mark-read")
+async def mark_chat_read(job_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.chat_messages.update_many(
+        {"job_id": job_id, "receiver_id": current_user.id, "read": False},
+        {"$set": {"read": True}}
+    )
+    
+    return {"message": f"Marked {result.modified_count} messages as read"}
+
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
