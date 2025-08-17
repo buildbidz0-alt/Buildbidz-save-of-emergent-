@@ -147,7 +147,7 @@ class PaymentOrder(BaseModel):
     amount: int = SUBSCRIPTION_AMOUNT
     currency: str = "INR"
 
-class Message(BaseModel):
+class ChatMessage(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     job_id: str
     sender_id: str
@@ -155,6 +155,11 @@ class Message(BaseModel):
     message: str
     file_url: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    read: bool = False
+
+class ChatMessageCreate(BaseModel):
+    message: str
+    file_url: Optional[str] = None
 
 # Utility functions
 def hash_password(password: str) -> str:
