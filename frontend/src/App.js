@@ -85,6 +85,7 @@ function App() {
             ) : <Navigate to="/" />} />
             <Route path="/jobs" element={user ? <JobsPage /> : <Navigate to="/" />} />
             <Route path="/bids" element={user ? <BidsPage /> : <Navigate to="/" />} />
+            <Route path="/chat" element={user ? <ChatPage /> : <Navigate to="/" />} />
             <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/" />} />
             <Route 
               path="/subscription" 
