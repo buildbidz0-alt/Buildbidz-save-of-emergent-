@@ -355,6 +355,306 @@ class BuildBidzAPITester:
             token=self.buyer_token
         )
 
+    def test_admin_login(self):
+        """Test admin login functionality"""
+        print("\n" + "="*50)
+        print("TESTING ADMIN LOGIN")
+        print("="*50)
+        
+        # Test Admin Login with correct credentials
+        admin_login = {
+            "email": "mohammadjalaluddin1027@gmail.com",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_login
+        )
+        
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            self.admin_user = response['user']
+            print(f"   Admin logged in successfully")
+            print(f"   Admin role: {self.admin_user.get('role')}")
+        
+        # Test invalid admin credentials
+        invalid_admin = {
+            "email": "mohammadjalaluddin1027@gmail.com",
+            "password": "wrongpassword"
+        }
+        
+        self.run_test(
+            "Invalid Admin Login",
+            "POST",
+            "auth/login",
+            401,
+            data=invalid_admin
+        )
+
+    def test_admin_dashboard_access(self):
+        """Test admin dashboard and management functionality"""
+        print("\n" + "="*50)
+        print("TESTING ADMIN DASHBOARD ACCESS")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("❌ Cannot test admin dashboard - admin login failed")
+            return
+        
+        # Test admin dashboard stats
+        self.run_test(
+            "Admin Dashboard Stats",
+            "GET",
+            "dashboard/stats",
+            200,
+            token=self.admin_token
+        )
+        
+        # Test admin user management
+        self.run_test(
+            "Admin Get All Users",
+            "GET",
+            "admin/users",
+            200,
+            token=self.admin_token
+        )
+        
+        # Test admin job management
+        self.run_test(
+            "Admin Get All Jobs",
+            "GET",
+            "admin/jobs",
+            200,
+            token=self.admin_token
+        )
+        
+        # Test admin bid management
+        self.run_test(
+            "Admin Get All Bids",
+            "GET",
+            "admin/bids",
+            200,
+            token=self.admin_token
+        )
+        
+        # Test non-admin trying to access admin endpoints
+        self.run_test(
+            "Non-Admin accessing admin users (Should Fail)",
+            "GET",
+            "admin/users",
+            403,
+            token=self.buyer_token
+        )
+
+    def test_password_management(self):
+        """Test password reset and change functionality"""
+        print("\n" + "="*50)
+        print("TESTING PASSWORD MANAGEMENT")
+        print("="*50)
+        
+        if not self.buyer_user:
+            print("❌ Cannot test password management - no buyer user")
+            return
+        
+        # Test forgot password
+        forgot_password_data = {
+            "email": self.buyer_user['email']
+        }
+        
+        self.run_test(
+            "Forgot Password Request",
+            "POST",
+            "auth/forgot-password",
+            200,
+            data=forgot_password_data
+        )
+        
+        # Test forgot password with non-existent email
+        forgot_password_invalid = {
+            "email": "nonexistent@test.com"
+        }
+        
+        self.run_test(
+            "Forgot Password (Non-existent Email)",
+            "POST",
+            "auth/forgot-password",
+            200,  # Should still return 200 for security
+            data=forgot_password_invalid
+        )
+        
+        # Test change password (requires current password)
+        change_password_data = {
+            "current_password": "TestPass123!",
+            "new_password": "NewTestPass123!"
+        }
+        
+        self.run_test(
+            "Change Password",
+            "POST",
+            "auth/change-password",
+            200,
+            data=change_password_data,
+            token=self.buyer_token
+        )
+        
+        # Test change password with wrong current password
+        wrong_current_password = {
+            "current_password": "WrongPassword",
+            "new_password": "NewTestPass123!"
+        }
+        
+        self.run_test(
+            "Change Password (Wrong Current Password)",
+            "POST",
+            "auth/change-password",
+            400,
+            data=wrong_current_password,
+            token=self.buyer_token
+        )
+
+    def test_user_profile_management(self):
+        """Test user profile update functionality"""
+        print("\n" + "="*50)
+        print("TESTING USER PROFILE MANAGEMENT")
+        print("="*50)
+        
+        if not self.buyer_token:
+            print("❌ Cannot test profile management - no buyer token")
+            return
+        
+        # Test profile update
+        profile_update_data = {
+            "company_name": "Updated Construction Co",
+            "contact_phone": "8809696025",  # Updated contact info
+            "gst_number": "29UPDATED1234F1Z5",
+            "address": "Updated Address, Mumbai"
+        }
+        
+        self.run_test(
+            "Update Profile",
+            "PUT",
+            "profile",
+            200,
+            data=profile_update_data,
+            token=self.buyer_token
+        )
+        
+        # Test getting updated profile
+        success, response = self.run_test(
+            "Get Updated Profile",
+            "GET",
+            "profile",
+            200,
+            token=self.buyer_token
+        )
+        
+        if success and response:
+            print(f"   Updated company name: {response.get('company_name')}")
+            print(f"   Updated phone: {response.get('contact_phone')}")
+
+    def test_support_info(self):
+        """Test support information endpoint"""
+        print("\n" + "="*50)
+        print("TESTING SUPPORT INFORMATION")
+        print("="*50)
+        
+        success, response = self.run_test(
+            "Get Support Info",
+            "GET",
+            "support-info",
+            200
+        )
+        
+        if success and response:
+            expected_phone = "8809696025"
+            expected_email = "mohammadjalaluddin1027@gmail.com"
+            
+            actual_phone = response.get('phone')
+            actual_email = response.get('email')
+            
+            print(f"   Expected phone: {expected_phone}")
+            print(f"   Actual phone: {actual_phone}")
+            print(f"   Expected email: {expected_email}")
+            print(f"   Actual email: {actual_email}")
+            
+            if actual_phone == expected_phone and actual_email == expected_email:
+                print("✅ Support contact information is correct")
+            else:
+                print("❌ Support contact information mismatch")
+
+    def test_subscription_pricing(self):
+        """Test subscription pricing (should be ₹5000/month)"""
+        print("\n" + "="*50)
+        print("TESTING SUBSCRIPTION PRICING")
+        print("="*50)
+        
+        if not self.buyer_token:
+            print("❌ Cannot test subscription pricing - no buyer token")
+            return
+        
+        success, response = self.run_test(
+            "Create Subscription Order",
+            "POST",
+            "payments/create-subscription-order",
+            200,
+            token=self.buyer_token
+        )
+        
+        if success and response:
+            amount = response.get('amount')
+            expected_amount = 500000  # ₹5000 in paise
+            
+            print(f"   Expected amount: {expected_amount} paise (₹5000)")
+            print(f"   Actual amount: {amount} paise (₹{amount/100 if amount else 'N/A'})")
+            
+            if amount == expected_amount:
+                print("✅ Subscription pricing is correct (₹5000/month)")
+            else:
+                print("❌ Subscription pricing mismatch")
+
+    def test_trial_system(self):
+        """Test 1-month free trial for new buyers"""
+        print("\n" + "="*50)
+        print("TESTING TRIAL SYSTEM")
+        print("="*50)
+        
+        # Create a new buyer to test trial
+        trial_buyer_data = {
+            "email": f"trial_buyer_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "Trial Construction Co",
+            "contact_phone": "+91-9876543212",
+            "role": "buyer",
+            "gst_number": "29TRIAL1234F1Z5",
+            "address": "123 Trial Street, Mumbai"
+        }
+        
+        success, response = self.run_test(
+            "New Buyer Registration (Should Get Trial)",
+            "POST",
+            "auth/register",
+            200,
+            data=trial_buyer_data
+        )
+        
+        if success and response:
+            user = response.get('user')
+            if user:
+                subscription_status = user.get('subscription_status')
+                trial_expires_at = user.get('trial_expires_at')
+                
+                print(f"   Subscription status: {subscription_status}")
+                print(f"   Trial expires at: {trial_expires_at}")
+                
+                if subscription_status == "trial" and trial_expires_at:
+                    print("✅ New buyer gets 1-month free trial")
+                else:
+                    print("❌ Trial system not working correctly")
+
     def test_role_based_access(self):
         """Test role-based access controls"""
         print("\n" + "="*50)
@@ -388,6 +688,23 @@ class BuildBidzAPITester:
             "bids/my",
             403,
             token=self.buyer_token
+        )
+        
+        # Non-admin trying admin endpoints
+        self.run_test(
+            "Buyer accessing admin users (Should Fail)",
+            "GET",
+            "admin/users",
+            403,
+            token=self.buyer_token
+        )
+        
+        self.run_test(
+            "Supplier accessing admin jobs (Should Fail)",
+            "GET",
+            "admin/jobs",
+            403,
+            token=self.supplier_token
         )
 
     def print_summary(self):
