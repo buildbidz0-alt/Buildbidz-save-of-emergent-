@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
   Building2, LogOut, Plus, TrendingUp, Clock, CheckCircle, 
-  DollarSign, Users, Award, AlertTriangle, Menu, X
+  DollarSign, Users, Award, AlertTriangle, Menu, X, Settings
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -34,12 +34,17 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  const needsSubscription = user?.role === 'buyer' && user?.subscription_status !== 'active';
+  const needsSubscription = user?.role === 'buyer' && user?.subscription_status !== 'active' && 
+    (!user?.trial_expires_at || new Date(user.trial_expires_at) <= new Date());
+
+  const isTrialActive = user?.role === 'buyer' && user?.subscription_status === 'trial' && 
+    user?.trial_expires_at && new Date(user.trial_expires_at) > new Date();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', current: true },
     { name: 'Jobs', href: '/jobs', current: false },
     { name: 'Bids', href: '/bids', current: false },
+    { name: 'Settings', href: '/settings', current: false },
     ...(user?.role === 'buyer' ? [{ name: 'Subscription', href: '/subscription', current: false }] : [])
   ];
 
@@ -70,11 +75,28 @@ const Dashboard = () => {
                     key={item.name}
                     to={item.href}
                     className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setSidebarOpen(false)}
                   >
                     {item.name}
                   </Link>
                 ))}
               </nav>
+              {/* Mobile logout button */}
+              <div className="px-4 py-4 border-t border-gray-700 mt-4">
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white">{user?.company_name}</p>
+                    <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="ml-3 text-gray-400 hover:text-white flex items-center"
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    <span className="text-sm">Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -95,6 +117,7 @@ const Dashboard = () => {
                   to={item.href}
                   className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
                 >
+                  {item.name === 'Settings' && <Settings className="h-4 w-4 mr-2" />}
                   {item.name}
                 </Link>
               ))}
@@ -145,6 +168,28 @@ const Dashboard = () => {
                   }
                 </p>
               </div>
+
+              {/* Trial Warning for Buyers */}
+              {isTrialActive && (
+                <div className="mb-8 glass border border-blue-500 rounded-lg p-6">
+                  <div className="flex items-center">
+                    <Clock className="h-8 w-8 text-blue-500 mr-4" />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white">Free Trial Active</h3>
+                      <p className="text-gray-400 mt-1">
+                        Your free trial expires on {new Date(user.trial_expires_at).toLocaleDateString()}. 
+                        Subscribe to continue posting jobs.
+                      </p>
+                    </div>
+                    <Link
+                      to="/subscription"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                    >
+                      Subscribe Now
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               {/* Subscription Warning for Buyers */}
               {needsSubscription && (
@@ -229,15 +274,16 @@ const Dashboard = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
                             <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                              stats.subscription_status === 'active' ? 'bg-green-600' : 'bg-red-600'
+                              stats.subscription_status === 'active' ? 'bg-green-600' : 
+                              stats.subscription_status === 'trial' ? 'bg-blue-600' : 'bg-red-600'
                             }`}>
                               <CheckCircle className="h-6 w-6 text-white" />
                             </div>
                           </div>
                           <div className="ml-4">
-                            <h3 className="text-sm font-medium text-gray-400">Subscription</h3>
+                            <h3 className="text-sm font-medium text-gray-400">Status</h3>
                             <p className="text-sm font-semibold text-white capitalize">
-                              {stats.subscription_status || 'Inactive'}
+                              {stats.subscription_status === 'trial' ? 'Free Trial' : stats.subscription_status || 'Inactive'}
                             </p>
                           </div>
                         </div>

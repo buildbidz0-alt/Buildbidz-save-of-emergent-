@@ -10,6 +10,9 @@ import Dashboard from "./components/Dashboard";
 import JobsPage from "./components/JobsPage";
 import BidsPage from "./components/BidsPage";
 import SubscriptionPage from "./components/SubscriptionPage";
+import SettingsPage from "./components/SettingsPage";
+import AboutPage from "./components/AboutPage";
+import AdminDashboard from "./components/AdminDashboard";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -56,6 +59,10 @@ function App() {
     setUser(null);
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -65,15 +72,19 @@ function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, API }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, API }}>
       <div className="App">
         <BrowserRouter>
           <Routes>
             <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
             <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
+            <Route path="/about-us" element={<AboutPage />} />
+            <Route path="/dashboard" element={user ? (
+              user.role === 'admin' ? <AdminDashboard /> : <Dashboard />
+            ) : <Navigate to="/" />} />
             <Route path="/jobs" element={user ? <JobsPage /> : <Navigate to="/" />} />
             <Route path="/bids" element={user ? <BidsPage /> : <Navigate to="/" />} />
+            <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/" />} />
             <Route 
               path="/subscription" 
               element={user && user.role === 'buyer' ? <SubscriptionPage /> : <Navigate to="/" />} 
