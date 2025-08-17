@@ -463,9 +463,14 @@ const AdminDashboard = () => {
                             <td className="px-6 py-4">
                               <div className="text-sm font-medium text-white">{job.title}</div>
                               <div className="text-sm text-gray-400 truncate max-w-xs">{job.description}</div>
+                              {job.posted_by_info && (
+                                <div className="text-xs text-orange-400 mt-1">
+                                  Posted by: {job.posted_by_info.company_name}
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-600 text-white capitalize">
                                 {job.category}
                               </span>
                             </td>
@@ -474,9 +479,9 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                job.status === 'open' ? 'bg-green-100 text-green-800' : 
-                                job.status === 'awarded' ? 'bg-blue-100 text-blue-800' : 
-                                'bg-gray-100 text-gray-800'
+                                job.status === 'open' ? 'bg-green-600 text-white' : 
+                                job.status === 'awarded' ? 'bg-blue-600 text-white' : 
+                                'bg-gray-600 text-white'
                               }`}>
                                 {job.status}
                               </span>
