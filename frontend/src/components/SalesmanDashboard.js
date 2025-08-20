@@ -37,6 +37,7 @@ const SalesmanDashboard = () => {
   useEffect(() => {
     fetchJobs();
     fetchMyBids();
+    fetchAwardedProjects();
   }, []);
 
   const fetchJobs = async () => {
@@ -57,6 +58,17 @@ const SalesmanDashboard = () => {
       setMyBids(response.data);
     } catch (error) {
       console.error('Failed to fetch my bids:', error);
+    }
+  };
+
+  const fetchAwardedProjects = async () => {
+    try {
+      // Get awarded bids for salesman
+      const response = await axios.get(`${API}/bids/my`);
+      const awardedBids = response.data.filter(bid => bid.status === 'awarded');
+      setAwardedProjects(awardedBids);
+    } catch (error) {
+      console.error('Failed to fetch awarded projects:', error);
     }
   };
 
