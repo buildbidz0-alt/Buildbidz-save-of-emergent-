@@ -25,6 +25,10 @@ const ChatPage = () => {
     if (jobId) {
       selectChatByJobId(jobId);
     }
+    
+    // Auto-refresh chat list every 10 seconds
+    const chatListInterval = setInterval(fetchChats, 10000);
+    return () => clearInterval(chatListInterval);
   }, [jobId]);
 
   useEffect(() => {
