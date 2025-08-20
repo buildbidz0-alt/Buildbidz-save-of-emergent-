@@ -70,10 +70,34 @@ const SalesmanDashboard = () => {
 
     setLoading(true);
     try {
-      await axios.post(`${API}/jobs/${selectedJob.id}/salesman-bids`, {
+      // First submit the bid
+      const bidResponse = await axios.post(`${API}/jobs/${selectedJob.id}/salesman-bids`, {
         ...newBid,
         price_quote: parseFloat(newBid.price_quote)
       });
+      
+      const createdBid = bidResponse.data;
+      
+      // Upload files if any are selected
+      if (bidFiles.length > 0) {
+        setUploading(true);
+        const formData = new FormData();
+        bidFiles.forEach((file) => {
+          formData.append('files', file);
+        });
+        
+        try {
+          await axios.post(`${API}/upload/bid/${createdBid.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } catch (fileError) {
+          console.error('File upload failed:', fileError);
+          // Don't fail bid creation if file upload fails
+          alert('Bid submitted successfully, but file upload failed. You can upload files later.');
+        }
+      }
       
       setShowBidModal(false);
       setSelectedJob(null);
@@ -87,13 +111,50 @@ const SalesmanDashboard = () => {
         company_gst_number: '',
         company_address: ''
       });
+      setBidFiles([]);
       fetchMyBids();
       alert('Bid submitted successfully!');
     } catch (error) {
       alert('Failed to submit bid: ' + (error.response?.data?.detail || 'Unknown error'));
     } finally {
       setLoading(false);
+      setUploading(false);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(file => {
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 
+                         'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                         'text/plain'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      
+      if (!validTypes.includes(file.type)) {
+        alert(`File ${file.name} is not a supported type`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large (max 10MB)`);
+        return false;
+      }
+      return true;
+    });
+    
+    setBidFiles(prevFiles => [...prevFiles, ...validFiles]);
+  };
+
+  const removeFile = (index) => {
+    setBidFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const openBidModal = (job) => {
