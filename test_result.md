@@ -284,6 +284,7 @@ test_plan:
   stuck_tasks: []
   test_all: true
   test_priority: "completed"
+  salesman_testing: "completed"
 
 agent_communication:
   - agent: "main"
