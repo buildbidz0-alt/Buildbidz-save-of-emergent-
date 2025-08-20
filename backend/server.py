@@ -144,6 +144,17 @@ class BidCreate(BaseModel):
     delivery_estimate: str
     notes: Optional[str] = None
 
+class SalesmanBidCreate(BaseModel):
+    price_quote: float
+    delivery_estimate: str
+    notes: Optional[str] = None
+    # Company details for unregistered companies
+    company_name: str
+    company_contact_phone: str
+    company_email: Optional[str] = None
+    company_gst_number: Optional[str] = None
+    company_address: Optional[str] = None
+
 class PaymentOrder(BaseModel):
     amount: int = SUBSCRIPTION_AMOUNT
     currency: str = "INR"
