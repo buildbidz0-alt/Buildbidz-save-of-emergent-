@@ -15,6 +15,7 @@ const BidsPage = () => {
   
   const [bids, setBids] = useState([]);
   const [myBids, setMyBids] = useState([]);
+  const [allMyJobs, setAllMyJobs] = useState([]); // For buyer: all their jobs with bids
   const [jobDetails, setJobDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(user?.role === 'buyer' ? 'received' : 'my-bids');
