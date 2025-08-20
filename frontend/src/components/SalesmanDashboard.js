@@ -30,6 +30,9 @@ const SalesmanDashboard = () => {
     company_address: ''
   });
 
+  const [bidFiles, setBidFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     fetchJobs();
     fetchMyBids();
