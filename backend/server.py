@@ -917,9 +917,12 @@ async def get_job_chat(job_id: str, current_user: User = Depends(get_current_use
     # Enrich with sender info
     enriched_messages = []
     for message in messages:
+        # Remove MongoDB ObjectId if present
+        message_dict = {k: v for k, v in message.items() if k != '_id'}
+        
         sender = await db.users.find_one({"id": message["sender_id"]})
         message_with_sender = {
-            **message,
+            **message_dict,
             "sender_info": {
                 "company_name": sender["company_name"],
                 "role": sender["role"]
