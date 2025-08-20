@@ -65,6 +65,39 @@ const BidsPage = () => {
     }
   };
 
+  const fetchAllMyJobsWithBids = async () => {
+    try {
+      // Get all buyer's jobs
+      const jobsResponse = await axios.get(`${API}/jobs/my`);
+      const jobs = jobsResponse.data;
+      
+      // For each job, get its bids
+      const jobsWithBids = await Promise.all(
+        jobs.map(async (job) => {
+          try {
+            const bidsResponse = await axios.get(`${API}/jobs/${job.id}/bids`);
+            return {
+              ...job,
+              bids: bidsResponse.data
+            };
+          } catch (error) {
+            // If can't fetch bids, return job with empty bids array
+            return {
+              ...job,
+              bids: []
+            };
+          }
+        })
+      );
+      
+      setAllMyJobs(jobsWithBids);
+    } catch (error) {
+      console.error('Failed to fetch jobs with bids:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchMyBids = async () => {
     try {
       const response = await axios.get(`${API}/bids/my`);
