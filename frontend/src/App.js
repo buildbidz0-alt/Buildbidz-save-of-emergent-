@@ -82,7 +82,9 @@ function App() {
             <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to="/dashboard" />} />
             <Route path="/about-us" element={<AboutPage />} />
             <Route path="/dashboard" element={user ? (
-              user.role === 'admin' ? <AdminDashboard /> : <Dashboard />
+              user.role === 'admin' ? <AdminDashboard /> : 
+              user.role === 'salesman' ? <SalesmanDashboard /> : 
+              <Dashboard />
             ) : <Navigate to="/" />} />
             <Route path="/jobs" element={user ? <JobsPage /> : <Navigate to="/" />} />
             <Route path="/bids" element={user ? <BidsPage /> : <Navigate to="/" />} />
