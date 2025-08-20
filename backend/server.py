@@ -695,6 +695,45 @@ async def submit_bid(job_id: str, bid_data: BidCreate, current_user: User = Depe
     await db.bids.insert_one(bid.dict())
     return bid
 
+# Salesman bidding endpoint for unregistered companies
+@api_router.post("/jobs/{job_id}/salesman-bids")
+async def submit_salesman_bid(job_id: str, bid_data: SalesmanBidCreate, current_user: User = Depends(require_admin_or_salesman)):
+    # Check if job exists
+    job = await db.jobs.find_one({"id": job_id, "status": "open"})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found or closed")
+    
+    # Create enhanced bid with company details
+    salesman_bid = Bid(
+        job_id=job_id,
+        supplier_id=current_user.id,  # Use salesman ID as supplier
+        price_quote=bid_data.price_quote,
+        delivery_estimate=bid_data.delivery_estimate,
+        notes=bid_data.notes,
+        status="submitted"
+    )
+    
+    # Store company details separately for this bid
+    company_details = {
+        "company_name": bid_data.company_name,
+        "company_contact_phone": bid_data.company_contact_phone,
+        "company_email": bid_data.company_email,
+        "company_gst_number": bid_data.company_gst_number,
+        "company_address": bid_data.company_address,
+        "submitted_by_salesman": current_user.id,
+        "submitted_by_salesman_name": current_user.company_name
+    }
+    
+    # Create bid document with company details embedded
+    bid_document = {
+        **salesman_bid.dict(),
+        "company_details": company_details,
+        "bid_type": "salesman_bid"
+    }
+    
+    await db.bids.insert_one(bid_document)
+    return salesman_bid
+
 @api_router.get("/jobs/{job_id}/bids", response_model=List[Dict])
 async def get_job_bids(job_id: str, current_user: User = Depends(get_current_user)):
     # Check if user owns the job or is admin
