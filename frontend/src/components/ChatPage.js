@@ -98,7 +98,8 @@ const ChatPage = () => {
       });
       
       setNewMessage('');
-      fetchMessages();
+      // Immediately refresh messages after sending
+      await fetchMessages();
       fetchChats(); // Refresh chat list to update last message
     } catch (error) {
       console.error('Failed to send message:', error);
