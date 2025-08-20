@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
   Building2, ArrowLeft, DollarSign, Clock, Award, X, CheckCircle,
-  TrendingUp, Package, Users, Wrench, MapPin, Calendar, MessageCircle
+  TrendingUp, Package, Users, Wrench, MapPin, Calendar, MessageCircle,
+  Upload, FileText
 } from 'lucide-react';
 import axios from 'axios';
 
