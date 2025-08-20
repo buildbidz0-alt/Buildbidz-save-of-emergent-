@@ -128,6 +128,7 @@ class JobPostCreate(BaseModel):
     location: str
     delivery_timeline: str
     budget_range: Optional[str] = None
+    # File attachments will be handled separately via multipart form
 
 class Bid(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
