@@ -12,6 +12,7 @@ const SalesmanDashboard = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [myBids, setMyBids] = useState([]);
+  const [awardedProjects, setAwardedProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('jobs');
   const [sidebarOpen, setSidebarOpen] = useState(false);
