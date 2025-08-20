@@ -210,6 +210,28 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             )
             return admin_user
         
+        # Handle salesman users
+        if user_id in ["salesman1", "salesman2"]:
+            salesman_emails = {
+                "salesman1": "salesman1@buildbidz.co.in",
+                "salesman2": "salesman2@buildbidz.co.in"
+            }
+            salesman_names = {
+                "salesman1": "BuildBidz Sales Team 1",
+                "salesman2": "BuildBidz Sales Team 2"
+            }
+            
+            salesman_user = User(
+                id=user_id,
+                email=salesman_emails[user_id],
+                company_name=salesman_names[user_id],
+                contact_phone=SUPPORT_PHONE,
+                role=UserRole.SALESMAN,
+                is_verified=True,
+                subscription_status="active"
+            )
+            return salesman_user
+        
         user = await db.users.find_one({"id": user_id})
         if user is None:
             raise HTTPException(status_code=401, detail="User not found")
