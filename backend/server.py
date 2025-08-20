@@ -752,14 +752,32 @@ async def get_job_bids(job_id: str, current_user: User = Depends(get_current_use
         # Remove MongoDB ObjectId if present
         bid_dict = {k: v for k, v in bid.items() if k != '_id'}
         
-        supplier = await db.users.find_one({"id": bid_dict["supplier_id"]})
-        bid_with_supplier = {
-            **bid_dict,
-            "supplier_info": {
-                "company_name": supplier["company_name"],
-                "contact_phone": supplier["contact_phone"]
-            } if supplier else None
-        }
+        # Check if this is a salesman bid
+        if bid_dict.get("bid_type") == "salesman_bid" and "company_details" in bid_dict:
+            # Use company details from salesman bid
+            company_details = bid_dict["company_details"]
+            bid_with_supplier = {
+                **bid_dict,
+                "supplier_info": {
+                    "company_name": company_details["company_name"],
+                    "contact_phone": company_details["company_contact_phone"],
+                    "email": company_details.get("company_email"),
+                    "gst_number": company_details.get("company_gst_number"),
+                    "address": company_details.get("company_address"),
+                    "submitted_by_salesman": company_details.get("submitted_by_salesman_name")
+                }
+            }
+        else:
+            # Regular supplier bid
+            supplier = await db.users.find_one({"id": bid_dict["supplier_id"]})
+            bid_with_supplier = {
+                **bid_dict,
+                "supplier_info": {
+                    "company_name": supplier["company_name"],
+                    "contact_phone": supplier["contact_phone"]
+                } if supplier else None
+            }
+        
         enriched_bids.append(bid_with_supplier)
     
     return enriched_bids
