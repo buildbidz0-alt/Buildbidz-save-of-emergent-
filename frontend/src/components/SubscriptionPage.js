@@ -285,8 +285,8 @@ const SubscriptionPage = () => {
             Questions about our subscription? 
           </p>
           <div className="flex justify-center space-x-6">
-            <span className="text-gray-300">📞 8809696025</span>
-            <span className="text-gray-300">📧 mohammadjalaluddin1027@gmail.com</span>
+            <span className="text-gray-300">📞 +91 8709326986</span>
+            <span className="text-gray-300">📧 support@buildbidz.co.in</span>
           </div>
         </div>
       </div>
