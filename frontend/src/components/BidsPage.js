@@ -625,10 +625,10 @@ const BidsPage = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || uploading}
                     className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                   >
-                    {loading ? 'Submitting...' : 'Submit Bid'}
+                    {loading ? 'Submitting...' : uploading ? 'Uploading Files...' : 'Submit Bid'}
                   </button>
                 </div>
               </form>
