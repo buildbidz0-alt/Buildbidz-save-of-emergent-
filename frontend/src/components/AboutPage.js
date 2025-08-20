@@ -164,7 +164,7 @@ const AboutPage = () => {
                 <div className="text-gray-400">Registered Suppliers</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">₹500Cr+</div>
+                <div className="text-3xl font-bold text-orange-500 mb-2">₹100Cr+</div>
                 <div className="text-gray-400">Projects Completed</div>
               </div>
               <div>
