@@ -313,7 +313,7 @@ const LandingPage = () => {
               <span className="text-2xl font-bold text-white">BuildBidz</span>
             </div>
             <div className="text-gray-400 text-sm">
-              <p>📞 8809696025 | 📧 mohammadjalaluddin1027@gmail.com</p>
+              <p>📞 +91 8709326986 | 📧 support@buildbidz.co.in</p>
               <p className="mt-1">© 2025 BuildBidz. All rights reserved.</p>
             </div>
           </div>
