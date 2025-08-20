@@ -28,6 +28,9 @@ const JobsPage = () => {
     budget_range: ''
   });
 
+  const [jobFiles, setJobFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     fetchJobs();
     if (user?.role === 'buyer') {
