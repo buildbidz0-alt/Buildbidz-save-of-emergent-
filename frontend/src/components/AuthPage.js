@@ -69,7 +69,7 @@ const AuthPage = () => {
           <div className="mt-8 space-y-4">
             <div className="flex items-center text-gray-300">
               <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
-              <span>10,000+ Verified Suppliers</span>
+              <span>1000+ Registered Suppliers</span>
             </div>
             <div className="flex items-center text-gray-300">
               <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
