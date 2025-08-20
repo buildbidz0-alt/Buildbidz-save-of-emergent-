@@ -784,7 +784,11 @@ async def get_job_bids(job_id: str, current_user: User = Depends(get_current_use
     return enriched_bids
 
 @api_router.get("/bids/my", response_model=List[Dict])
-async def get_my_bids(current_user: User = Depends(require_supplier)):
+async def get_my_bids(current_user: User = Depends(get_current_user)):
+    # Allow suppliers and salesmen to view their bids
+    if current_user.role not in [UserRole.SUPPLIER, UserRole.SALESMAN]:
+        raise HTTPException(status_code=403, detail="Only suppliers and salesmen can view their bids")
+    
     bids = await db.bids.find({"supplier_id": current_user.id}).sort("created_at", -1).to_list(100)
     
     # Enrich with job info and convert ObjectIds
@@ -794,14 +798,36 @@ async def get_my_bids(current_user: User = Depends(require_supplier)):
         bid_dict = {k: v for k, v in bid.items() if k != '_id'}
         
         job = await db.jobs.find_one({"id": bid_dict["job_id"]})
-        bid_with_job = {
-            **bid_dict,
-            "job_info": {
-                "title": job["title"],
-                "category": job["category"],
-                "location": job["location"]
-            } if job else None
-        }
+        
+        # Handle salesman bids with company details
+        if bid_dict.get("bid_type") == "salesman_bid" and "company_details" in bid_dict:
+            company_details = bid_dict["company_details"]
+            bid_with_job = {
+                **bid_dict,
+                "job_info": {
+                    "title": job["title"],
+                    "category": job["category"],
+                    "location": job["location"]
+                } if job else None,
+                "company_represented": {
+                    "company_name": company_details["company_name"],
+                    "contact_phone": company_details["company_contact_phone"],
+                    "email": company_details.get("company_email"),
+                    "gst_number": company_details.get("company_gst_number"),
+                    "address": company_details.get("company_address")
+                }
+            }
+        else:
+            # Regular supplier bid
+            bid_with_job = {
+                **bid_dict,
+                "job_info": {
+                    "title": job["title"],
+                    "category": job["category"],
+                    "location": job["location"]
+                } if job else None
+            }
+        
         enriched_bids.append(bid_with_job)
     
     return enriched_bids
