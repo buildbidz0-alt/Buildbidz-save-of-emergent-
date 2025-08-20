@@ -64,7 +64,31 @@ const JobsPage = () => {
     setError('');
 
     try {
-      await axios.post(`${API}/jobs`, newJob);
+      // First create the job
+      const jobResponse = await axios.post(`${API}/jobs`, newJob);
+      const createdJob = jobResponse.data;
+      
+      // Upload files if any are selected
+      if (jobFiles.length > 0) {
+        setUploading(true);
+        const formData = new FormData();
+        jobFiles.forEach((file) => {
+          formData.append('files', file);
+        });
+        
+        try {
+          await axios.post(`${API}/upload/job/${createdJob.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } catch (fileError) {
+          console.error('File upload failed:', fileError);
+          // Don't fail job creation if file upload fails
+          alert('Job created successfully, but file upload failed. You can upload files later.');
+        }
+      }
+      
       setShowCreateModal(false);
       setNewJob({
         title: '',
@@ -75,13 +99,50 @@ const JobsPage = () => {
         delivery_timeline: '',
         budget_range: ''
       });
+      setJobFiles([]);
       fetchMyJobs();
       setActiveTab('my-jobs');
     } catch (error) {
       setError(error.response?.data?.detail || 'Failed to create job');
     } finally {
       setLoading(false);
+      setUploading(false);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = files.filter(file => {
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 
+                         'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                         'text/plain'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      
+      if (!validTypes.includes(file.type)) {
+        alert(`File ${file.name} is not a supported type`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large (max 10MB)`);
+        return false;
+      }
+      return true;
+    });
+    
+    setJobFiles(prevFiles => [...prevFiles, ...validFiles]);
+  };
+
+  const removeFile = (index) => {
+    setJobFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const filteredJobs = jobs.filter(job => {
