@@ -155,6 +155,66 @@ backend:
         agent: "testing"
         comment: "TESTED: Admin user details endpoint working correctly. Returns user info, jobs_posted count, bids_submitted count, full job list, and bid list. Password field properly excluded for security."
 
+  - task: "Implement salesman authentication"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Salesman authentication working perfectly. Both salesman1@buildbidz.co.in and salesman2@buildbidz.co.in login successfully with password 5968474644j. JWT tokens correctly return role as 'salesman' and user profiles contain proper company names (BuildBidz Sales Team 1/2). Authentication endpoints return 200 status with valid access tokens."
+
+  - task: "Implement salesman bidding functionality"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Salesman bidding functionality working excellently. POST /api/jobs/{job_id}/salesman-bids endpoint accepts company details (company_name, company_contact_phone, company_email, company_gst_number, company_address) and creates bids with embedded company_details structure. Multiple salesmen can bid on same job. Proper authorization - only admin/salesman roles can access endpoint."
+
+  - task: "Implement salesman job access"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Salesman job access working correctly. Salesmen can access GET /api/jobs endpoint and view all available jobs (found 8 jobs during testing). Dashboard stats endpoint returns appropriate data for salesman role. Job listing functionality fully accessible to salesman accounts."
+
+  - task: "Implement salesman bid visibility with company details"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Salesman bid visibility working perfectly. Salesman bids appear in job bid listings with company details (ABC Construction Company, XYZ Construction Ltd, PQR Builders Pvt Ltd) instead of salesman details. supplier_info enrichment correctly shows company information with all fields (company_name, contact_phone, email, gst_number, address, submitted_by_salesman). Bid data structure contains proper company_details embedded object."
+
+  - task: "Implement salesman authorization controls"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Salesman authorization controls working correctly. Salesmen properly blocked from admin-only endpoints (admin/users, admin/jobs, admin/bids return 403), buyer-only endpoints (jobs/my, payments/create-subscription-order return 403), and supplier-only endpoints (bids/my returns 403). Salesmen can access general endpoints (support-info, notifications return 200). Authorization system functioning as designed."
+
 frontend:
   - task: "Fix bids display on BidsPage for buyers"
     implemented: true
