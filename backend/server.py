@@ -54,6 +54,7 @@ class UserRole(str):
     BUYER = "buyer"
     SUPPLIER = "supplier" 
     ADMIN = "admin"
+    SALESMAN = "salesman"
 
 class UserCreate(BaseModel):
     email: EmailStr
