@@ -741,7 +741,7 @@ async def get_job_bids(job_id: str, current_user: User = Depends(get_current_use
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job["posted_by"] != current_user.id and current_user.role != UserRole.ADMIN:
+    if job["posted_by"] != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.SALESMAN]:
         raise HTTPException(status_code=403, detail="Not authorized to view bids")
     
     bids = await db.bids.find({"job_id": job_id}).sort("created_at", -1).to_list(100)
