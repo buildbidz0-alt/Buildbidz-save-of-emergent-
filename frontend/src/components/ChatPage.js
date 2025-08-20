@@ -32,8 +32,8 @@ const ChatPage = () => {
       fetchMessages();
       markChatAsRead();
       
-      // Auto-refresh messages every 5 seconds
-      const interval = setInterval(fetchMessages, 5000);
+      // Auto-refresh messages every 2 seconds for real-time feel
+      const interval = setInterval(fetchMessages, 2000);
       return () => clearInterval(interval);
     }
   }, [selectedChat]);
