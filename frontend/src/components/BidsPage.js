@@ -31,10 +31,15 @@ const BidsPage = () => {
   useEffect(() => {
     if (user?.role === 'supplier') {
       fetchMyBids();
-    }
-    if (jobId) {
-      fetchJobBids();
-      fetchJobDetails();
+    } else if (user?.role === 'buyer') {
+      if (jobId) {
+        // Specific job bids
+        fetchJobBids();
+        fetchJobDetails();
+      } else {
+        // All jobs with their bids for buyer overview
+        fetchAllMyJobsWithBids();
+      }
     }
   }, [jobId]);
 
