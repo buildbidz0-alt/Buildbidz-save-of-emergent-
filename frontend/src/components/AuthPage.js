@@ -73,7 +73,7 @@ const AuthPage = () => {
             </div>
             <div className="flex items-center text-gray-300">
               <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
-              <span>₹500Cr+ Projects Completed</span>
+              <span>Projects Worth ₹100+ Crore Completed</span>
             </div>
             <div className="flex items-center text-gray-300">
               <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
