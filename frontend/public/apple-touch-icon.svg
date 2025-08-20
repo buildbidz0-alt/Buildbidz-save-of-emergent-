@@ -1,0 +1,5 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
+  <rect width="180" height="180" fill="#ea580c" rx="20"/>
+  <text x="90" y="120" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold" font-size="80">B</text>
+</svg>
