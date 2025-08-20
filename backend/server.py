@@ -232,6 +232,16 @@ async def require_admin(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
+async def require_salesman(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.SALESMAN:
+        raise HTTPException(status_code=403, detail="Salesman access required")
+    return current_user
+
+async def require_admin_or_salesman(current_user: User = Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.SALESMAN]:
+        raise HTTPException(status_code=403, detail="Admin or Salesman access required")
+    return current_user
+
 async def require_active_subscription_or_trial(current_user: User = Depends(require_buyer)):
     # Check if user is in trial period
     if current_user.subscription_status == "trial":
