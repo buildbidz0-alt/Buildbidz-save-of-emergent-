@@ -28,6 +28,9 @@ const BidsPage = () => {
     notes: ''
   });
 
+  const [bidFiles, setBidFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     if (user?.role === 'supplier') {
       fetchMyBids();
