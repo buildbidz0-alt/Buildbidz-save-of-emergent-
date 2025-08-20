@@ -272,24 +272,133 @@ const BidsPage = () => {
         ) : (
           <div className="space-y-6">
             {activeTab === 'received' ? (
-              bids.length === 0 ? (
-                <div className="glass rounded-lg p-12 text-center">
-                  <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-white mb-2">No bids received yet</h3>
-                  <p className="text-gray-400">Suppliers will submit bids for your job posting</p>
-                </div>
+              // Buyer view - either specific job bids or overview of all jobs
+              jobId ? (
+                // Specific job bids
+                bids.length === 0 ? (
+                  <div className="glass rounded-lg p-12 text-center">
+                    <TrendingUp className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No bids received yet</h3>
+                    <p className="text-gray-400">Suppliers will submit bids for your job posting</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {bids.map((bid) => (
+                      <BidCard 
+                        key={bid.id} 
+                        bid={bid} 
+                        jobId={jobId}
+                        onAward={() => handleAwardBid(bid.id)}
+                        canAward={user?.role === 'buyer' && jobDetails?.status === 'open'}
+                      />
+                    ))}
+                  </div>
+                )
               ) : (
-                <div className="grid gap-6">
-                  {bids.map((bid) => (
-                    <BidCard 
-                      key={bid.id} 
-                      bid={bid} 
-                      jobId={jobId}
-                      onAward={() => handleAwardBid(bid.id)}
-                      canAward={user?.role === 'buyer' && jobDetails?.status === 'open'}
-                    />
-                  ))}
-                </div>
+                // All jobs overview for buyer
+                allMyJobs.length === 0 ? (
+                  <div className="glass rounded-lg p-12 text-center">
+                    <Building2 className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No jobs posted yet</h3>
+                    <p className="text-gray-400 mb-6">Post your first job to start receiving bids</p>
+                    <Link
+                      to="/jobs?action=post"
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center"
+                    >
+                      Post a Job
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {allMyJobs.map((job) => (
+                      <div key={job.id} className="glass rounded-lg p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className={`${getCategoryColor(job.category)} p-3 rounded-lg mr-4`}>
+                              {getCategoryIcon(job.category)}
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-semibold text-white mb-2">{job.title}</h3>
+                              <div className="flex items-center space-x-4 text-gray-400 text-sm">
+                                <span className="flex items-center">
+                                  <MapPin className="h-4 w-4 mr-1" />
+                                  {job.location}
+                                </span>
+                                <span className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  {new Date(job.created_at).toLocaleDateString()}
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                  job.status === 'open' ? 'bg-green-600 text-white' : 
+                                  job.status === 'awarded' ? 'bg-blue-600 text-white' : 
+                                  'bg-gray-600 text-white'
+                                }`}>
+                                  {job.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Link
+                            to={`/bids?job_id=${job.id}`}
+                            className="text-orange-400 hover:text-orange-300 text-sm font-medium"
+                          >
+                            View Details →
+                          </Link>
+                        </div>
+                        
+                        <div className="mb-4">
+                          <p className="text-gray-300 text-sm">{job.description}</p>
+                        </div>
+
+                        {job.bids && job.bids.length > 0 ? (
+                          <div className="space-y-3">
+                            <h4 className="text-white font-medium">
+                              Received Bids ({job.bids.length})
+                            </h4>
+                            <div className="grid gap-3">
+                              {job.bids.slice(0, 3).map((bid) => (
+                                <div key={bid.id} className="bg-gray-700 rounded-lg p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-3">
+                                      <span className="text-white font-medium">
+                                        {bid.supplier_info?.company_name || 'Unknown Supplier'}
+                                      </span>
+                                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                        bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
+                                        bid.status === 'awarded' ? 'bg-green-600 text-white' : 
+                                        'bg-red-600 text-white'
+                                      }`}>
+                                        {bid.status}
+                                      </span>
+                                    </div>
+                                    <span className="text-orange-400 font-semibold">
+                                      ₹{bid.price_quote?.toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="text-gray-400 text-sm">
+                                    Delivery: {bid.delivery_estimate}
+                                  </div>
+                                </div>
+                              ))}
+                              {job.bids.length > 3 && (
+                                <Link
+                                  to={`/bids?job_id=${job.id}`}
+                                  className="text-orange-400 hover:text-orange-300 text-sm font-medium text-center block py-2"
+                                >
+                                  View all {job.bids.length} bids →
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-400 text-sm py-4 text-center">
+                            No bids received yet
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )
               )
             ) : (
               myBids.length === 0 ? (
