@@ -187,7 +187,7 @@ const AboutPage = () => {
                   <Phone className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">Phone Support</h3>
-                <p className="text-orange-400 text-lg font-medium">8809696025</p>
+                <p className="text-orange-400 text-lg font-medium">+91 8709326986</p>
                 <p className="text-gray-400 text-sm">Available 24/7</p>
               </div>
               
