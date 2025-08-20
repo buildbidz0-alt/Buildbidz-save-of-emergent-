@@ -1105,6 +1105,237 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
             "win_rate": f"{(won_bids/total_bids*100):.1f}%" if total_bids > 0 else "0%"
         }
 
+# File upload endpoints
+import aiofiles
+import shutil
+
+@api_router.post("/upload/job/{job_id}")
+async def upload_job_files(
+    job_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload files for a specific job"""
+    # Check if job exists and user owns it
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job["posted_by"] != current_user.id and current_user.role not in [UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="Not authorized to upload files for this job")
+    
+    uploaded_files = []
+    upload_dir = f"/app/backend/uploads/jobs/{job_id}"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    for file in files:
+        # Validate file size (max 10MB)
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(status_code=413, detail=f"File {file.filename} is too large (max 10MB)")
+        
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx', '.txt', '.xlsx', '.xls'}
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=415, detail=f"File type {file_extension} not allowed")
+        
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"{upload_dir}/{unique_filename}"
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(contents)
+        
+        # Store file info in database
+        file_record = {
+            "id": str(uuid.uuid4()),
+            "job_id": job_id,
+            "original_filename": file.filename,
+            "stored_filename": unique_filename,
+            "file_path": file_path,
+            "file_size": len(contents),
+            "content_type": file.content_type,
+            "uploaded_by": current_user.id,
+            "uploaded_at": datetime.utcnow()
+        }
+        
+        await db.job_files.insert_one(file_record)
+        
+        uploaded_files.append({
+            "id": file_record["id"],
+            "filename": file.filename,
+            "size": len(contents),
+            "content_type": file.content_type
+        })
+    
+    return {"message": f"Uploaded {len(uploaded_files)} files", "files": uploaded_files}
+
+@api_router.post("/upload/bid/{bid_id}")
+async def upload_bid_files(
+    bid_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload files for a specific bid"""
+    # Check if bid exists and user owns it
+    bid = await db.bids.find_one({"id": bid_id})
+    if not bid:
+        raise HTTPException(status_code=404, detail="Bid not found")
+    
+    if bid["supplier_id"] != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.SALESMAN]:
+        raise HTTPException(status_code=403, detail="Not authorized to upload files for this bid")
+    
+    uploaded_files = []
+    upload_dir = f"/app/backend/uploads/bids/{bid_id}"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    for file in files:
+        # Validate file size (max 10MB)
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(status_code=413, detail=f"File {file.filename} is too large (max 10MB)")
+        
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx', '.txt', '.xlsx', '.xls'}
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=415, detail=f"File type {file_extension} not allowed")
+        
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"{upload_dir}/{unique_filename}"
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(contents)
+        
+        # Store file info in database
+        file_record = {
+            "id": str(uuid.uuid4()),
+            "bid_id": bid_id,
+            "original_filename": file.filename,
+            "stored_filename": unique_filename,
+            "file_path": file_path,
+            "file_size": len(contents),
+            "content_type": file.content_type,
+            "uploaded_by": current_user.id,
+            "uploaded_at": datetime.utcnow()
+        }
+        
+        await db.bid_files.insert_one(file_record)
+        
+        uploaded_files.append({
+            "id": file_record["id"],
+            "filename": file.filename,
+            "size": len(contents),
+            "content_type": file.content_type
+        })
+    
+    return {"message": f"Uploaded {len(uploaded_files)} files", "files": uploaded_files}
+
+@api_router.get("/files/job/{job_id}")
+async def get_job_files(job_id: str, current_user: User = Depends(get_current_user)):
+    """Get all files for a specific job"""
+    # Check if job exists and user has access
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Allow job owner, suppliers who bid, and admin to view files
+    if current_user.role == UserRole.ADMIN:
+        # Admin can view all files
+        pass
+    elif job["posted_by"] == current_user.id:
+        # Job owner can view files
+        pass
+    else:
+        # Check if user is a supplier who has bid on this job
+        supplier_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id})
+        if not supplier_bid:
+            raise HTTPException(status_code=403, detail="Not authorized to view files for this job")
+    
+    files = await db.job_files.find({"job_id": job_id}).sort("uploaded_at", -1).to_list(100)
+    return [{
+        "id": file["id"],
+        "filename": file["original_filename"],
+        "size": file["file_size"],
+        "content_type": file["content_type"],
+        "uploaded_at": file["uploaded_at"]
+    } for file in files]
+
+@api_router.get("/files/bid/{bid_id}")
+async def get_bid_files(bid_id: str, current_user: User = Depends(get_current_user)):
+    """Get all files for a specific bid"""
+    # Check if bid exists and user has access
+    bid = await db.bids.find_one({"id": bid_id})
+    if not bid:
+        raise HTTPException(status_code=404, detail="Bid not found")
+    
+    # Allow bid owner, job owner, and admin to view files
+    job = await db.jobs.find_one({"id": bid["job_id"]})
+    if (current_user.role == UserRole.ADMIN or 
+        bid["supplier_id"] == current_user.id or 
+        (job and job["posted_by"] == current_user.id)):
+        files = await db.bid_files.find({"bid_id": bid_id}).sort("uploaded_at", -1).to_list(100)
+        return [{
+            "id": file["id"],
+            "filename": file["original_filename"],
+            "size": file["file_size"],
+            "content_type": file["content_type"],
+            "uploaded_at": file["uploaded_at"]
+        } for file in files]
+    else:
+        raise HTTPException(status_code=403, detail="Not authorized to view files for this bid")
+
+from fastapi.responses import FileResponse
+
+@api_router.get("/download/{file_type}/{file_id}")
+async def download_file(file_type: str, file_id: str, current_user: User = Depends(get_current_user)):
+    """Download a specific file"""
+    if file_type not in ["job", "bid"]:
+        raise HTTPException(status_code=400, detail="Invalid file type")
+    
+    # Get file record
+    collection = db.job_files if file_type == "job" else db.bid_files
+    file_record = await collection.find_one({"id": file_id})
+    
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Check authorization
+    if file_type == "job":
+        job = await db.jobs.find_one({"id": file_record["job_id"]})
+        if not job:
+            raise HTTPException(status_code=404, detail="Associated job not found")
+        
+        # Allow job owner, suppliers who bid, and admin
+        if current_user.role != UserRole.ADMIN and job["posted_by"] != current_user.id:
+            supplier_bid = await db.bids.find_one({"job_id": file_record["job_id"], "supplier_id": current_user.id})
+            if not supplier_bid:
+                raise HTTPException(status_code=403, detail="Not authorized to download this file")
+    else:  # bid file
+        bid = await db.bids.find_one({"id": file_record["bid_id"]})
+        if not bid:
+            raise HTTPException(status_code=404, detail="Associated bid not found")
+        
+        job = await db.jobs.find_one({"id": bid["job_id"]})
+        if (current_user.role != UserRole.ADMIN and 
+            bid["supplier_id"] != current_user.id and 
+            (not job or job["posted_by"] != current_user.id)):
+            raise HTTPException(status_code=403, detail="Not authorized to download this file")
+    
+    # Check if file exists on disk
+    if not os.path.exists(file_record["file_path"]):
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        path=file_record["file_path"],
+        filename=file_record["original_filename"],
+        media_type=file_record["content_type"]
+    )
+
 # Support info endpoint
 @api_router.get("/support-info")
 async def get_support_info():
