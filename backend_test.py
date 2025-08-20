@@ -1151,6 +1151,538 @@ class BuildBidzAPITester:
                 token=self.admin_token
             )
 
+    def test_salesman_authentication(self):
+        """Test salesman authentication functionality"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN AUTHENTICATION")
+        print("="*50)
+        
+        # Test Salesman1 Login
+        salesman1_login = {
+            "email": "salesman1@buildbidz.co.in",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Salesman1 Login",
+            "POST",
+            "auth/login",
+            200,
+            data=salesman1_login
+        )
+        
+        if success and response:
+            self.salesman1_token = response['access_token']
+            self.salesman1_user = response['user']
+            print(f"   Salesman1 ID: {self.salesman1_user['id']}")
+            print(f"   Salesman1 Role: {self.salesman1_user['role']}")
+            print(f"   Salesman1 Company: {self.salesman1_user['company_name']}")
+            
+            # Verify role is "salesman"
+            if self.salesman1_user['role'] == 'salesman':
+                print("✅ Salesman1 role verification passed")
+            else:
+                print(f"❌ Salesman1 role verification failed - Expected 'salesman', got '{self.salesman1_user['role']}'")
+        
+        # Test Salesman2 Login
+        salesman2_login = {
+            "email": "salesman2@buildbidz.co.in",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Salesman2 Login",
+            "POST",
+            "auth/login",
+            200,
+            data=salesman2_login
+        )
+        
+        if success and response:
+            self.salesman2_token = response['access_token']
+            self.salesman2_user = response['user']
+            print(f"   Salesman2 ID: {self.salesman2_user['id']}")
+            print(f"   Salesman2 Role: {self.salesman2_user['role']}")
+            print(f"   Salesman2 Company: {self.salesman2_user['company_name']}")
+            
+            # Verify role is "salesman"
+            if self.salesman2_user['role'] == 'salesman':
+                print("✅ Salesman2 role verification passed")
+            else:
+                print(f"❌ Salesman2 role verification failed - Expected 'salesman', got '{self.salesman2_user['role']}'")
+        
+        # Test invalid salesman login
+        invalid_salesman_login = {
+            "email": "salesman1@buildbidz.co.in",
+            "password": "wrongpassword"
+        }
+        
+        self.run_test(
+            "Invalid Salesman Login",
+            "POST",
+            "auth/login",
+            401,
+            data=invalid_salesman_login
+        )
+
+    def test_salesman_profile_access(self):
+        """Test salesman profile access"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN PROFILE ACCESS")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman profile - salesman1 login failed")
+            return
+        
+        # Test salesman profile access
+        success, response = self.run_test(
+            "Salesman1 Profile Access",
+            "GET",
+            "profile",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and response:
+            print(f"   Profile Email: {response.get('email')}")
+            print(f"   Profile Role: {response.get('role')}")
+            print(f"   Profile Company: {response.get('company_name')}")
+            print(f"   Profile Verified: {response.get('is_verified')}")
+            print(f"   Profile Subscription: {response.get('subscription_status')}")
+            
+            # Verify JWT token contains correct user info
+            if response.get('role') == 'salesman' and response.get('email') == 'salesman1@buildbidz.co.in':
+                print("✅ JWT token and profile verification passed")
+            else:
+                print("❌ JWT token or profile verification failed")
+
+    def test_salesman_job_access(self):
+        """Test salesman access to job listing endpoints"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN JOB ACCESS")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman job access - salesman1 login failed")
+            return
+        
+        # Test getting all jobs as salesman
+        success, response = self.run_test(
+            "Salesman Get All Jobs",
+            "GET",
+            "jobs",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and response:
+            print(f"   Found {len(response)} available jobs")
+            if len(response) > 0:
+                print(f"   Sample job: {response[0].get('title')} - {response[0].get('category')}")
+        
+        # Test salesman dashboard stats
+        success, stats_response = self.run_test(
+            "Salesman Dashboard Stats",
+            "GET",
+            "dashboard/stats",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and stats_response:
+            print(f"   Dashboard stats retrieved: {stats_response}")
+
+    def test_salesman_bidding_functionality(self):
+        """Test salesman bidding functionality"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN BIDDING FUNCTIONALITY")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman bidding - salesman1 login failed")
+            return
+        
+        # First, get available jobs to bid on
+        success, jobs_response = self.run_test(
+            "Get Jobs for Salesman Bidding",
+            "GET",
+            "jobs",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if not success or not jobs_response or len(jobs_response) == 0:
+            print("❌ No jobs available for bidding test")
+            return
+        
+        # Use the first available job
+        test_job = jobs_response[0]
+        job_id = test_job['id']
+        print(f"   Testing with job: {test_job['title']} (ID: {job_id})")
+        
+        # Test salesman bid submission
+        salesman_bid_data = {
+            "price_quote": 50000,
+            "delivery_estimate": "10-15 days",
+            "notes": "High quality materials with experienced team",
+            "company_name": "ABC Construction Company",
+            "company_contact_phone": "+91 9876543210",
+            "company_email": "abc@construction.com",
+            "company_gst_number": "29ABCDE1234F1Z5",
+            "company_address": "123 Construction Street, Mumbai"
+        }
+        
+        success, bid_response = self.run_test(
+            "Submit Salesman Bid",
+            "POST",
+            f"jobs/{job_id}/salesman-bids",
+            200,
+            data=salesman_bid_data,
+            token=self.salesman1_token
+        )
+        
+        if success and bid_response:
+            self.salesman_bid_id = bid_response['id']
+            print(f"   Salesman bid submitted with ID: {self.salesman_bid_id}")
+            print(f"   Bid price: ₹{bid_response.get('price_quote')}")
+            print(f"   Delivery estimate: {bid_response.get('delivery_estimate')}")
+        
+        # Test that regular suppliers cannot use salesman bidding endpoint
+        if hasattr(self, 'supplier_token') and self.supplier_token:
+            self.run_test(
+                "Supplier using Salesman Bid Endpoint (Should Fail)",
+                "POST",
+                f"jobs/{job_id}/salesman-bids",
+                403,
+                data=salesman_bid_data,
+                token=self.supplier_token
+            )
+        
+        # Test that buyers cannot use salesman bidding endpoint
+        if hasattr(self, 'buyer_token') and self.buyer_token:
+            self.run_test(
+                "Buyer using Salesman Bid Endpoint (Should Fail)",
+                "POST",
+                f"jobs/{job_id}/salesman-bids",
+                403,
+                data=salesman_bid_data,
+                token=self.buyer_token
+            )
+
+    def test_salesman_bid_visibility(self):
+        """Test that salesman bids appear with company details"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN BID VISIBILITY")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman bid visibility - salesman1 login failed")
+            return
+        
+        # Get available jobs to find one with bids
+        success, jobs_response = self.run_test(
+            "Get Jobs for Bid Visibility Test",
+            "GET",
+            "jobs",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if not success or not jobs_response or len(jobs_response) == 0:
+            print("❌ No jobs available for bid visibility test")
+            return
+        
+        # Find a job to test bid visibility
+        test_job = jobs_response[0]
+        job_id = test_job['id']
+        
+        # Test salesman can view bids on jobs
+        success, bids_response = self.run_test(
+            "Salesman View Job Bids",
+            "GET",
+            f"jobs/{job_id}/bids",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and bids_response:
+            print(f"   Found {len(bids_response)} bids on job")
+            
+            # Check if any salesman bids exist and verify company details
+            for bid in bids_response:
+                if bid.get('bid_type') == 'salesman_bid':
+                    supplier_info = bid.get('supplier_info', {})
+                    print(f"   Salesman bid found:")
+                    print(f"     Company: {supplier_info.get('company_name')}")
+                    print(f"     Phone: {supplier_info.get('contact_phone')}")
+                    print(f"     Email: {supplier_info.get('email')}")
+                    print(f"     GST: {supplier_info.get('gst_number')}")
+                    print(f"     Address: {supplier_info.get('address')}")
+                    print(f"     Submitted by: {supplier_info.get('submitted_by_salesman')}")
+                    
+                    # Verify company details are shown instead of salesman details
+                    if supplier_info.get('company_name') and supplier_info.get('company_name') != 'BuildBidz Sales Team 1':
+                        print("✅ Salesman bid shows company details correctly")
+                    else:
+                        print("❌ Salesman bid not showing company details properly")
+                    break
+            else:
+                print("   No salesman bids found in current job bids")
+
+    def test_salesman_authorization(self):
+        """Test salesman authorization and access controls"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN AUTHORIZATION")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman authorization - salesman1 login failed")
+            return
+        
+        # Test salesman cannot access admin-only endpoints
+        self.run_test(
+            "Salesman accessing admin users (Should Fail)",
+            "GET",
+            "admin/users",
+            403,
+            token=self.salesman1_token
+        )
+        
+        self.run_test(
+            "Salesman accessing admin jobs (Should Fail)",
+            "GET",
+            "admin/jobs",
+            403,
+            token=self.salesman1_token
+        )
+        
+        self.run_test(
+            "Salesman accessing admin bids (Should Fail)",
+            "GET",
+            "admin/bids",
+            403,
+            token=self.salesman1_token
+        )
+        
+        # Test salesman cannot access buyer-only endpoints
+        self.run_test(
+            "Salesman accessing my jobs (Should Fail)",
+            "GET",
+            "jobs/my",
+            403,
+            token=self.salesman1_token
+        )
+        
+        self.run_test(
+            "Salesman accessing subscription (Should Fail)",
+            "POST",
+            "payments/create-subscription-order",
+            403,
+            token=self.salesman1_token
+        )
+        
+        # Test salesman cannot access supplier-only endpoints
+        self.run_test(
+            "Salesman accessing my bids (Should Fail)",
+            "GET",
+            "bids/my",
+            403,
+            token=self.salesman1_token
+        )
+        
+        # Test salesman can access general endpoints
+        self.run_test(
+            "Salesman accessing support info",
+            "GET",
+            "support-info",
+            200,
+            token=self.salesman1_token
+        )
+        
+        self.run_test(
+            "Salesman accessing notifications",
+            "GET",
+            "notifications",
+            200,
+            token=self.salesman1_token
+        )
+
+    def test_multiple_salesman_bids(self):
+        """Test multiple salesman accounts can bid on same job"""
+        print("\n" + "="*50)
+        print("TESTING MULTIPLE SALESMAN BIDS")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test multiple salesman bids - salesman1 login failed")
+            return
+        
+        if not hasattr(self, 'salesman2_token') or not self.salesman2_token:
+            print("❌ Cannot test multiple salesman bids - salesman2 login failed")
+            return
+        
+        # Get available jobs
+        success, jobs_response = self.run_test(
+            "Get Jobs for Multiple Salesman Bids",
+            "GET",
+            "jobs",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if not success or not jobs_response or len(jobs_response) == 0:
+            print("❌ No jobs available for multiple salesman bids test")
+            return
+        
+        # Use the first available job
+        test_job = jobs_response[0]
+        job_id = test_job['id']
+        print(f"   Testing with job: {test_job['title']} (ID: {job_id})")
+        
+        # Salesman1 bid
+        salesman1_bid_data = {
+            "price_quote": 45000,
+            "delivery_estimate": "8-12 days",
+            "notes": "Premium quality with fast delivery",
+            "company_name": "XYZ Construction Ltd",
+            "company_contact_phone": "+91 9876543211",
+            "company_email": "xyz@construction.com",
+            "company_gst_number": "29XYZDE1234F1Z5",
+            "company_address": "456 XYZ Street, Delhi"
+        }
+        
+        success, bid1_response = self.run_test(
+            "Salesman1 Submit Bid",
+            "POST",
+            f"jobs/{job_id}/salesman-bids",
+            200,
+            data=salesman1_bid_data,
+            token=self.salesman1_token
+        )
+        
+        # Salesman2 bid on same job
+        salesman2_bid_data = {
+            "price_quote": 48000,
+            "delivery_estimate": "12-16 days",
+            "notes": "Competitive pricing with quality assurance",
+            "company_name": "PQR Builders Pvt Ltd",
+            "company_contact_phone": "+91 9876543212",
+            "company_email": "pqr@builders.com",
+            "company_gst_number": "29PQRDE1234F1Z5",
+            "company_address": "789 PQR Avenue, Bangalore"
+        }
+        
+        success, bid2_response = self.run_test(
+            "Salesman2 Submit Bid on Same Job",
+            "POST",
+            f"jobs/{job_id}/salesman-bids",
+            200,
+            data=salesman2_bid_data,
+            token=self.salesman2_token
+        )
+        
+        if success and bid2_response:
+            print("✅ Multiple salesmen can bid on the same job")
+        
+        # Verify both bids appear in job bids
+        success, bids_response = self.run_test(
+            "View All Bids on Job",
+            "GET",
+            f"jobs/{job_id}/bids",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and bids_response:
+            salesman_bids = [bid for bid in bids_response if bid.get('bid_type') == 'salesman_bid']
+            print(f"   Found {len(salesman_bids)} salesman bids on this job")
+            
+            for i, bid in enumerate(salesman_bids):
+                supplier_info = bid.get('supplier_info', {})
+                print(f"   Bid {i+1}: {supplier_info.get('company_name')} - ₹{bid.get('price_quote')}")
+
+    def test_salesman_bid_data_structure(self):
+        """Test salesman bid data structure and enrichment"""
+        print("\n" + "="*50)
+        print("TESTING SALESMAN BID DATA STRUCTURE")
+        print("="*50)
+        
+        if not hasattr(self, 'salesman1_token') or not self.salesman1_token:
+            print("❌ Cannot test salesman bid data structure - salesman1 login failed")
+            return
+        
+        # Get jobs and find one with salesman bids
+        success, jobs_response = self.run_test(
+            "Get Jobs for Data Structure Test",
+            "GET",
+            "jobs",
+            200,
+            token=self.salesman1_token
+        )
+        
+        if success and jobs_response:
+            for job in jobs_response:
+                job_id = job['id']
+                
+                # Get bids for this job
+                success, bids_response = self.run_test(
+                    f"Get Bids for Job {job['title'][:20]}...",
+                    "GET",
+                    f"jobs/{job_id}/bids",
+                    200,
+                    token=self.salesman1_token
+                )
+                
+                if success and bids_response:
+                    salesman_bids = [bid for bid in bids_response if bid.get('bid_type') == 'salesman_bid']
+                    
+                    if salesman_bids:
+                        print(f"   Analyzing salesman bid data structure:")
+                        bid = salesman_bids[0]
+                        
+                        # Check required fields
+                        required_fields = ['id', 'job_id', 'supplier_id', 'price_quote', 'delivery_estimate', 'status', 'created_at']
+                        for field in required_fields:
+                            if field in bid:
+                                print(f"   ✅ {field}: {bid[field]}")
+                            else:
+                                print(f"   ❌ Missing field: {field}")
+                        
+                        # Check company details structure
+                        if 'company_details' in bid:
+                            company_details = bid['company_details']
+                            print(f"   ✅ company_details found")
+                            
+                            company_fields = ['company_name', 'company_contact_phone', 'submitted_by_salesman', 'submitted_by_salesman_name']
+                            for field in company_fields:
+                                if field in company_details:
+                                    print(f"   ✅ company_details.{field}: {company_details[field]}")
+                                else:
+                                    print(f"   ❌ Missing company_details.{field}")
+                        else:
+                            print(f"   ❌ Missing company_details")
+                        
+                        # Check supplier_info enrichment
+                        if 'supplier_info' in bid:
+                            supplier_info = bid['supplier_info']
+                            print(f"   ✅ supplier_info enrichment found")
+                            
+                            # Verify it shows company details, not salesman details
+                            company_name = supplier_info.get('company_name')
+                            if company_name and 'BuildBidz Sales Team' not in company_name:
+                                print(f"   ✅ supplier_info shows company name: {company_name}")
+                            else:
+                                print(f"   ❌ supplier_info shows salesman name instead of company: {company_name}")
+                        else:
+                            print(f"   ❌ Missing supplier_info enrichment")
+                        
+                        break
+                else:
+                    continue
+            else:
+                print("   No salesman bids found for data structure analysis")
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "="*60)
