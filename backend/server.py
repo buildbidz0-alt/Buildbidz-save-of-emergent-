@@ -438,7 +438,7 @@ async def get_user_details(user_id: str, current_user: User = Depends(require_ad
         "jobs_posted": len(jobs),
         "bids_submitted": len(bids),
         "jobs": [JobPost(**job) for job in jobs],
-        "bids": bids
+        "bids": [{k: v for k, v in bid.items() if k != '_id'} for bid in bids]
     }
 
 @api_router.delete("/admin/users/{user_id}")
