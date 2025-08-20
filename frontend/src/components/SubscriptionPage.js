@@ -234,7 +234,7 @@ const SubscriptionPage = () => {
                 <Award className="h-12 w-12 text-blue-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Verified Network</h3>
                 <p className="text-gray-400 text-sm">
-                  10,000+ verified suppliers and contractors
+                  1000+ registered suppliers and contractors
                 </p>
               </div>
               <div className="glass p-6 rounded-lg text-center">
