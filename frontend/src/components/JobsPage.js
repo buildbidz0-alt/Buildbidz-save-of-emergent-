@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
   Building2, Plus, MapPin, Clock, DollarSign, Filter, Search,
-  Calendar, Package, Users, Wrench, ArrowLeft, Upload, X
+  Calendar, Package, Users, Wrench, ArrowLeft, Upload, X, FileText
 } from 'lucide-react';
 import axios from 'axios';
 
