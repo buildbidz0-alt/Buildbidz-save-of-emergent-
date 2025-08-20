@@ -154,6 +154,12 @@ const Dashboard = () => {
             <Menu className="h-6 w-6" />
           </button>
           
+          {/* Mobile Notification Bell */}
+          <div className="lg:hidden">
+            <NotificationBell />
+          </div>
+          
+          {/* Desktop Notification Bell */}
           <div className="hidden lg:block">
             <div className="flex items-center space-x-4">
               <NotificationBell />
