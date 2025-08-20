@@ -426,6 +426,60 @@ const JobsPage = () => {
                   />
                 </div>
 
+                {/* File Upload Section */}
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Attach Files (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-gray-500 transition-colors">
+                    <input
+                      type="file"
+                      id="job-files"
+                      multiple
+                      accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.xls,.xlsx"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="job-files"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <Upload className="h-12 w-12 text-gray-400 mb-2" />
+                      <span className="text-gray-400 mb-1">
+                        Click to upload files or drag and drop
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        PDF, JPG, PNG, DOCX, XLSX (Max 10MB each)
+                      </span>
+                    </label>
+                  </div>
+                  
+                  {/* Selected Files Display */}
+                  {jobFiles.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <h4 className="text-sm font-medium text-gray-300">Selected Files:</h4>
+                      {jobFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-700 rounded-lg p-3">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-400" />
+                            <div>
+                              <p className="text-sm font-medium text-white">{file.name}</p>
+                              <p className="text-xs text-gray-400">{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end space-x-4">
                   <button
                     type="button"
