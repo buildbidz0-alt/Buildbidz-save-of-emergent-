@@ -11,13 +11,18 @@ class BuildBidzAPITester:
         self.buyer_token = None
         self.supplier_token = None
         self.admin_token = None
+        self.salesman1_token = None
+        self.salesman2_token = None
         self.buyer_user = None
         self.supplier_user = None
         self.admin_user = None
+        self.salesman1_user = None
+        self.salesman2_user = None
         self.tests_run = 0
         self.tests_passed = 0
         self.job_id = None
         self.bid_id = None
+        self.salesman_bid_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None, form_data=False):
         """Run a single API test"""
