@@ -266,12 +266,12 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-orange-500 mb-2">10,000+</div>
-              <div className="text-gray-400">Verified Suppliers</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">1000+</div>
+              <div className="text-gray-400">Registered Suppliers</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-orange-500 mb-2">₹500Cr+</div>
-              <div className="text-gray-400">Projects Completed</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">₹100Cr+</div>
+              <div className="text-gray-400">Projects Worth Completed</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-orange-500 mb-2">98%</div>
