@@ -314,6 +314,41 @@ async def login(login_data: UserLogin):
             "user": admin_user
         }
     
+    # Check for salesman logins
+    salesman_accounts = {
+        "salesman1@buildbidz.co.in": {
+            "id": "salesman1",
+            "company_name": "BuildBidz Sales Team 1",
+            "password": "5968474644j"
+        },
+        "salesman2@buildbidz.co.in": {
+            "id": "salesman2", 
+            "company_name": "BuildBidz Sales Team 2",
+            "password": "5968474644j"
+        }
+    }
+    
+    if login_data.email in salesman_accounts:
+        salesman_data = salesman_accounts[login_data.email]
+        if login_data.password == salesman_data["password"]:
+            salesman_user = User(
+                id=salesman_data["id"],
+                email=login_data.email,
+                company_name=salesman_data["company_name"],
+                contact_phone=SUPPORT_PHONE,
+                role=UserRole.SALESMAN,
+                is_verified=True,
+                subscription_status="active"
+            )
+            access_token = create_access_token(data={"sub": salesman_data["id"]})
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": salesman_user
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+    
     user = await db.users.find_one({"email": login_data.email})
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
