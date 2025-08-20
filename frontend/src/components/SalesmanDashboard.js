@@ -319,11 +319,42 @@ const SalesmanDashboard = () => {
                               <span className="text-orange-400 font-semibold">₹{bid.price_quote?.toLocaleString()}</span>
                               <span className="text-gray-400">{bid.delivery_estimate}</span>
                             </div>
-                            {bid.company_details && (
-                              <div className="text-sm text-gray-400">
-                                Company: {bid.company_details.company_name}
+                            {bid.company_represented && (
+                              <div className="bg-gray-700 rounded-lg p-3 mb-3">
+                                <h4 className="text-sm font-medium text-white mb-2">Bid placed for:</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+                                  <div>
+                                    <span className="font-medium">Company:</span> {bid.company_represented.company_name}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Phone:</span> {bid.company_represented.contact_phone}
+                                  </div>
+                                  {bid.company_represented.email && (
+                                    <div>
+                                      <span className="font-medium">Email:</span> {bid.company_represented.email}
+                                    </div>
+                                  )}
+                                  {bid.company_represented.gst_number && (
+                                    <div>
+                                      <span className="font-medium">GST:</span> {bid.company_represented.gst_number}
+                                    </div>
+                                  )}
+                                </div>
+                                {bid.company_represented.address && (
+                                  <div className="mt-2 text-xs text-gray-300">
+                                    <span className="font-medium">Address:</span> {bid.company_represented.address}
+                                  </div>
+                                )}
                               </div>
                             )}
+                            {bid.notes && (
+                              <div className="text-sm text-gray-400 mb-2">
+                                <span className="font-medium">Notes:</span> {bid.notes}
+                              </div>
+                            )}
+                            <div className="text-xs text-gray-500">
+                              Submitted on {new Date(bid.created_at).toLocaleDateString()}
+                            </div>
                           </div>
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             bid.status === 'submitted' ? 'bg-blue-600 text-white' : 
