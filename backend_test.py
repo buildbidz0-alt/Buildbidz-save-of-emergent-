@@ -1757,6 +1757,16 @@ def main():
     tester.test_enhanced_admin_delete_operations()
     tester.test_role_based_access()
     
+    # Salesman functionality tests
+    tester.test_salesman_authentication()
+    tester.test_salesman_profile_access()
+    tester.test_salesman_job_access()
+    tester.test_salesman_bidding_functionality()
+    tester.test_salesman_bid_visibility()
+    tester.test_salesman_authorization()
+    tester.test_multiple_salesman_bids()
+    tester.test_salesman_bid_data_structure()
+    
     # Print summary
     tester.print_summary()
     
