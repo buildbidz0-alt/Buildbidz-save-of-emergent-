@@ -1724,6 +1724,9 @@ class BuildBidzAPITester:
         print("✅ Chat System")
         print("✅ Admin Chat Management")
         print("✅ Role-based Access Controls")
+        print("✅ Salesman Authentication")
+        print("✅ Salesman Bidding System")
+        print("✅ Salesman Authorization Controls")
 
 def main():
     print("🚀 Starting BuildBidz API Testing...")
