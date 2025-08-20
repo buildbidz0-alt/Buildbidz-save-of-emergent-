@@ -2289,6 +2289,11 @@ def main():
     tester.test_multiple_salesman_bids()
     tester.test_salesman_bid_data_structure()
     
+    # CRITICAL REVIEW REQUEST: Salesman My Bids functionality
+    tester.test_salesman_my_bids_functionality()
+    tester.test_salesman_my_bids_edge_cases()
+    tester.test_salesman_my_bids_comprehensive_workflow()
+    
     # Print summary
     tester.print_summary()
     
