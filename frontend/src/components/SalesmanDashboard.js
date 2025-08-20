@@ -169,7 +169,8 @@ const SalesmanDashboard = () => {
 
   const navigation = [
     { name: 'Available Jobs', id: 'jobs', icon: Briefcase },
-    { name: 'My Bids', id: 'bids', icon: DollarSign }
+    { name: 'My Bids', id: 'bids', icon: DollarSign },
+    { name: 'Awarded Projects', id: 'awarded', icon: Award }
   ];
 
   return (
