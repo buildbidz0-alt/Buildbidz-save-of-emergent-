@@ -68,7 +68,7 @@ const LandingPage = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link 
-                to="#features" 
+                to="/about-us" 
                 className="glass border border-gray-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
               >
                 Learn More
