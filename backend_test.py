@@ -2210,6 +2210,318 @@ class BuildBidzAPITester:
         print(f"     ✅ Data enrichment functioning")
         print(f"     ✅ Complete workflow operational")
 
+    def test_admin_salesman_login_investigation(self):
+        """CRITICAL INVESTIGATION: Test admin and salesman login issues as reported by user"""
+        print("\n" + "="*80)
+        print("🚨 CRITICAL INVESTIGATION: ADMIN AND SALESMAN LOGIN ISSUES")
+        print("="*80)
+        print("Investigating authentication problems reported by user...")
+        print("Potential cause: GST/Address mandatory changes breaking hardcoded users")
+        
+        # Test 1: Admin Login with exact credentials from review request
+        print("\n🔍 TEST 1: Admin Login Investigation")
+        admin_credentials = {
+            "email": "mohammadjalaluddin1027@gmail.com",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Admin Login (Exact Credentials from Review)",
+            "POST",
+            "auth/login",
+            200,
+            data=admin_credentials
+        )
+        
+        if success and response:
+            self.admin_token = response.get('access_token')
+            self.admin_user = response.get('user')
+            print(f"   ✅ Admin login successful")
+            print(f"   Admin ID: {self.admin_user.get('id')}")
+            print(f"   Admin Role: {self.admin_user.get('role')}")
+            print(f"   Admin Email: {self.admin_user.get('email')}")
+            print(f"   Admin Company: {self.admin_user.get('company_name')}")
+            print(f"   Admin GST: {self.admin_user.get('gst_number', 'NOT SET')}")
+            print(f"   Admin Address: {self.admin_user.get('address', 'NOT SET')}")
+            print(f"   Admin Verified: {self.admin_user.get('is_verified')}")
+            print(f"   Admin Subscription: {self.admin_user.get('subscription_status')}")
+            
+            # Test admin profile access
+            success_profile, profile_response = self.run_test(
+                "Admin Profile Access After Login",
+                "GET",
+                "profile",
+                200,
+                token=self.admin_token
+            )
+            
+            if success_profile:
+                print(f"   ✅ Admin profile access successful")
+            else:
+                print(f"   ❌ Admin profile access failed after login")
+                
+            # Test admin dashboard access
+            success_dashboard, dashboard_response = self.run_test(
+                "Admin Dashboard Access After Login",
+                "GET",
+                "dashboard/stats",
+                200,
+                token=self.admin_token
+            )
+            
+            if success_dashboard:
+                print(f"   ✅ Admin dashboard access successful")
+                if dashboard_response:
+                    print(f"   Dashboard stats: {dashboard_response}")
+            else:
+                print(f"   ❌ Admin dashboard access failed after login")
+        else:
+            print(f"   ❌ CRITICAL: Admin login failed!")
+            print(f"   This confirms the reported authentication issue")
+        
+        # Test 2: Salesman1 Login Investigation
+        print("\n🔍 TEST 2: Salesman1 Login Investigation")
+        salesman1_credentials = {
+            "email": "salesman1@buildbidz.co.in",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Salesman1 Login (Exact Credentials from Review)",
+            "POST",
+            "auth/login",
+            200,
+            data=salesman1_credentials
+        )
+        
+        if success and response:
+            self.salesman1_token = response.get('access_token')
+            self.salesman1_user = response.get('user')
+            print(f"   ✅ Salesman1 login successful")
+            print(f"   Salesman1 ID: {self.salesman1_user.get('id')}")
+            print(f"   Salesman1 Role: {self.salesman1_user.get('role')}")
+            print(f"   Salesman1 Email: {self.salesman1_user.get('email')}")
+            print(f"   Salesman1 Company: {self.salesman1_user.get('company_name')}")
+            print(f"   Salesman1 GST: {self.salesman1_user.get('gst_number', 'NOT SET')}")
+            print(f"   Salesman1 Address: {self.salesman1_user.get('address', 'NOT SET')}")
+            print(f"   Salesman1 Verified: {self.salesman1_user.get('is_verified')}")
+            print(f"   Salesman1 Subscription: {self.salesman1_user.get('subscription_status')}")
+            
+            # Test salesman profile access
+            success_profile, profile_response = self.run_test(
+                "Salesman1 Profile Access After Login",
+                "GET",
+                "profile",
+                200,
+                token=self.salesman1_token
+            )
+            
+            if success_profile:
+                print(f"   ✅ Salesman1 profile access successful")
+            else:
+                print(f"   ❌ Salesman1 profile access failed after login")
+        else:
+            print(f"   ❌ CRITICAL: Salesman1 login failed!")
+            print(f"   This confirms the reported authentication issue")
+        
+        # Test 3: Salesman2 Login Investigation
+        print("\n🔍 TEST 3: Salesman2 Login Investigation")
+        salesman2_credentials = {
+            "email": "salesman2@buildbidz.co.in",
+            "password": "5968474644j"
+        }
+        
+        success, response = self.run_test(
+            "Salesman2 Login (Exact Credentials from Review)",
+            "POST",
+            "auth/login",
+            200,
+            data=salesman2_credentials
+        )
+        
+        if success and response:
+            self.salesman2_token = response.get('access_token')
+            self.salesman2_user = response.get('user')
+            print(f"   ✅ Salesman2 login successful")
+            print(f"   Salesman2 ID: {self.salesman2_user.get('id')}")
+            print(f"   Salesman2 Role: {self.salesman2_user.get('role')}")
+            print(f"   Salesman2 Email: {self.salesman2_user.get('email')}")
+            print(f"   Salesman2 Company: {self.salesman2_user.get('company_name')}")
+            print(f"   Salesman2 GST: {self.salesman2_user.get('gst_number', 'NOT SET')}")
+            print(f"   Salesman2 Address: {self.salesman2_user.get('address', 'NOT SET')}")
+            print(f"   Salesman2 Verified: {self.salesman2_user.get('is_verified')}")
+            print(f"   Salesman2 Subscription: {self.salesman2_user.get('subscription_status')}")
+            
+            # Test salesman profile access
+            success_profile, profile_response = self.run_test(
+                "Salesman2 Profile Access After Login",
+                "GET",
+                "profile",
+                200,
+                token=self.salesman2_token
+            )
+            
+            if success_profile:
+                print(f"   ✅ Salesman2 profile access successful")
+            else:
+                print(f"   ❌ Salesman2 profile access failed after login")
+        else:
+            print(f"   ❌ CRITICAL: Salesman2 login failed!")
+            print(f"   This confirms the reported authentication issue")
+        
+        # Test 4: JWT Token Validation Investigation
+        print("\n🔍 TEST 4: JWT Token Validation Investigation")
+        
+        if hasattr(self, 'admin_token') and self.admin_token:
+            # Test if JWT token creation/validation is working
+            success, response = self.run_test(
+                "Admin JWT Token Validation Test",
+                "GET",
+                "profile",
+                200,
+                token=self.admin_token
+            )
+            
+            if success:
+                print(f"   ✅ Admin JWT token validation working")
+            else:
+                print(f"   ❌ Admin JWT token validation failed")
+        
+        if hasattr(self, 'salesman1_token') and self.salesman1_token:
+            success, response = self.run_test(
+                "Salesman1 JWT Token Validation Test",
+                "GET",
+                "profile",
+                200,
+                token=self.salesman1_token
+            )
+            
+            if success:
+                print(f"   ✅ Salesman1 JWT token validation working")
+            else:
+                print(f"   ❌ Salesman1 JWT token validation failed")
+        
+        # Test 5: User Model Validation Investigation
+        print("\n🔍 TEST 5: User Model Validation Investigation")
+        print("Testing if GST/Address mandatory changes broke hardcoded users...")
+        
+        # Try to create a regular user to see if GST/Address validation is working
+        test_user_data = {
+            "email": f"gst_test_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "GST Test Co",
+            "contact_phone": "+91-9876543210",
+            "role": "supplier",
+            "gst_number": "29GSTTEST1234F1Z5",
+            "address": "123 GST Test Street, Mumbai"
+        }
+        
+        success, response = self.run_test(
+            "Regular User Registration (GST/Address Test)",
+            "POST",
+            "auth/register",
+            200,
+            data=test_user_data
+        )
+        
+        if success:
+            print(f"   ✅ Regular user registration with GST/Address working")
+        else:
+            print(f"   ❌ Regular user registration with GST/Address failed")
+        
+        # Test without GST to see validation
+        test_user_no_gst = {
+            "email": f"no_gst_test_{int(time.time())}@test.com",
+            "password": "TestPass123!",
+            "company_name": "No GST Test Co",
+            "contact_phone": "+91-9876543211",
+            "role": "supplier",
+            "gst_number": "",
+            "address": "123 No GST Test Street, Mumbai"
+        }
+        
+        success, response = self.run_test(
+            "User Registration Without GST (Should Fail)",
+            "POST",
+            "auth/register",
+            400,
+            data=test_user_no_gst
+        )
+        
+        if not success:
+            print(f"   ✅ GST validation working - registration without GST properly rejected")
+        else:
+            print(f"   ❌ GST validation not working - registration without GST allowed")
+        
+        # Test 6: Dashboard Access Investigation
+        print("\n🔍 TEST 6: Dashboard Access Investigation")
+        
+        if hasattr(self, 'admin_token') and self.admin_token:
+            # Test admin-specific endpoints
+            success, response = self.run_test(
+                "Admin Users Endpoint Access",
+                "GET",
+                "admin/users",
+                200,
+                token=self.admin_token
+            )
+            
+            if success:
+                print(f"   ✅ Admin can access admin/users endpoint")
+            else:
+                print(f"   ❌ Admin cannot access admin/users endpoint")
+        
+        if hasattr(self, 'salesman1_token') and self.salesman1_token:
+            # Test salesman job access
+            success, response = self.run_test(
+                "Salesman Jobs Endpoint Access",
+                "GET",
+                "jobs",
+                200,
+                token=self.salesman1_token
+            )
+            
+            if success:
+                print(f"   ✅ Salesman can access jobs endpoint")
+                if response:
+                    print(f"   Found {len(response)} jobs available to salesman")
+            else:
+                print(f"   ❌ Salesman cannot access jobs endpoint")
+        
+        # Summary of Investigation
+        print("\n" + "="*80)
+        print("🔍 INVESTIGATION SUMMARY")
+        print("="*80)
+        
+        admin_working = hasattr(self, 'admin_token') and self.admin_token
+        salesman1_working = hasattr(self, 'salesman1_token') and self.salesman1_token
+        salesman2_working = hasattr(self, 'salesman2_token') and self.salesman2_token
+        
+        print(f"Admin Login Status: {'✅ WORKING' if admin_working else '❌ FAILED'}")
+        print(f"Salesman1 Login Status: {'✅ WORKING' if salesman1_working else '❌ FAILED'}")
+        print(f"Salesman2 Login Status: {'✅ WORKING' if salesman2_working else '❌ FAILED'}")
+        
+        if not admin_working or not salesman1_working or not salesman2_working:
+            print("\n🚨 CRITICAL ISSUES IDENTIFIED:")
+            if not admin_working:
+                print("- Admin authentication is failing")
+            if not salesman1_working:
+                print("- Salesman1 authentication is failing")
+            if not salesman2_working:
+                print("- Salesman2 authentication is failing")
+            
+            print("\n💡 LIKELY ROOT CAUSE:")
+            print("- User model changes making GST and address mandatory")
+            print("- get_current_user function not including required GST/address fields for hardcoded users")
+            print("- Admin/salesman user creation in login endpoint missing mandatory fields")
+            
+            print("\n🔧 RECOMMENDED FIXES:")
+            print("1. Update get_current_user function to include GST/address for admin/salesman users")
+            print("2. Update login endpoint admin/salesman user creation to include mandatory fields")
+            print("3. Make GST/address Optional for system accounts (admin/salesman)")
+        else:
+            print("\n✅ All authentication working correctly - no issues found")
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "="*60)
