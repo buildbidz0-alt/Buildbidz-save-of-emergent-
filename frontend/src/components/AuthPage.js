@@ -244,7 +244,7 @@ const AuthPage = () => {
                   {/* Address */}
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Address (Optional)
+                      Business Address *
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -252,9 +252,10 @@ const AuthPage = () => {
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
+                        required
                         rows={3}
                         className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="Enter company address"
+                        placeholder="Enter complete business address with city, state, and pincode"
                       />
                     </div>
                   </div>
