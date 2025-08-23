@@ -281,6 +281,22 @@ async def require_active_subscription_or_trial(current_user: User = Depends(requ
 def generate_reset_code():
     return str(secrets.randbelow(1000000)).zfill(6)
 
+def validate_gst_number(gst_number: str) -> bool:
+    """Validate GST number format: 15 characters (2 digits + 5 letters + 4 digits + 1 letter + 1 alphanumeric + Z + 1 alphanumeric)"""
+    import re
+    gst_pattern = r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$'
+    return bool(re.match(gst_pattern, gst_number.upper()))
+
+def validate_business_address(address: str) -> bool:
+    """Validate business address - must be at least 20 characters and contain meaningful content"""
+    if not address or len(address.strip()) < 20:
+        return False
+    # Check for meaningful content (not just repeated characters or spaces)
+    cleaned_address = address.strip().replace(' ', '')
+    if len(set(cleaned_address)) < 5:  # At least 5 different characters
+        return False
+    return True
+
 # Auth endpoints
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
