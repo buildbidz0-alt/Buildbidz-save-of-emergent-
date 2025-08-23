@@ -494,7 +494,31 @@ async def update_profile(profile_data: UserUpdate, current_user: User = Depends(
     if current_user.id == "admin":
         raise HTTPException(status_code=403, detail="Admin profile cannot be updated")
     
+    # Validate GST number if provided
+    if profile_data.gst_number is not None:
+        if not profile_data.gst_number or not validate_gst_number(profile_data.gst_number):
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid GST number format. Please enter a valid 15-digit GST number (e.g., 27ABCDE1234F1Z5)"
+            )
+    
+    # Validate address if provided
+    if profile_data.address is not None:
+        if not profile_data.address or not validate_business_address(profile_data.address):
+            raise HTTPException(
+                status_code=400, 
+                detail="Business address must be at least 20 characters and include complete address details (city, state, pincode)"
+            )
+    
     update_data = {k: v for k, v in profile_data.dict().items() if v is not None}
+    
+    # Normalize GST number to uppercase if provided
+    if 'gst_number' in update_data:
+        update_data['gst_number'] = update_data['gst_number'].upper()
+    
+    # Trim address if provided
+    if 'address' in update_data:
+        update_data['address'] = update_data['address'].strip()
     
     if update_data:
         await db.users.update_one(
