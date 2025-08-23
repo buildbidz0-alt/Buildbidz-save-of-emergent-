@@ -499,8 +499,8 @@ async def get_profile(current_user: User = Depends(get_current_user)):
 
 @api_router.put("/profile")
 async def update_profile(profile_data: UserUpdate, current_user: User = Depends(get_current_user)):
-    if current_user.id == "admin":
-        raise HTTPException(status_code=403, detail="Admin profile cannot be updated")
+    if current_user.id == "admin" or current_user.id in ["salesman1", "salesman2"]:
+        raise HTTPException(status_code=403, detail="System account profile cannot be updated")
     
     # Validate GST number if provided
     if profile_data.gst_number is not None:
