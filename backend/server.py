@@ -62,8 +62,8 @@ class UserCreate(BaseModel):
     company_name: str
     contact_phone: str
     role: str
-    gst_number: Optional[str] = None
-    address: Optional[str] = None
+    gst_number: str  # Now mandatory
+    address: str     # Now mandatory
 
 class UserLogin(BaseModel):
     email: EmailStr
