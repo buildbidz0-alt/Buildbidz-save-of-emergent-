@@ -149,12 +149,12 @@ class SalesmanBidCreate(BaseModel):
     price_quote: float
     delivery_estimate: str
     notes: Optional[str] = None
-    # Company details for unregistered companies
+    # Company details for unregistered companies - now mandatory for compliance
     company_name: str
     company_contact_phone: str
     company_email: Optional[str] = None
-    company_gst_number: Optional[str] = None
-    company_address: Optional[str] = None
+    company_gst_number: str  # Now mandatory for regulatory compliance
+    company_address: str     # Now mandatory for business transparency
 
 class PaymentOrder(BaseModel):
     amount: int = SUBSCRIPTION_AMOUNT
