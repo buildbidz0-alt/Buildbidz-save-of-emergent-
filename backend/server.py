@@ -75,8 +75,8 @@ class User(BaseModel):
     company_name: str
     contact_phone: str
     role: str
-    gst_number: Optional[str] = None
-    address: Optional[str] = None
+    gst_number: str  # Now mandatory
+    address: str     # Now mandatory
     is_verified: bool = False
     subscription_status: str = "trial"  # trial, active, expired, inactive
     subscription_expires_at: Optional[datetime] = None
