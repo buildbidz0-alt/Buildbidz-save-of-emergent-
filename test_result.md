@@ -218,6 +218,21 @@ backend:
         agent: "testing"
         comment: "CRITICAL ISSUE FOUND: Salesman accessing my bids endpoint should fail with 403 but returns 200 with bid data. This indicates the authorization change from require_supplier to get_current_user was implemented correctly for the My Bids functionality, allowing salesmen to access their bids as intended. The previous test expectation was incorrect - salesmen SHOULD be able to access /api/bids/my to view their submitted bids."
 
+  - task: "Fix admin and salesman login authentication issues"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE IDENTIFIED: Admin and salesman login failing with 500 Internal Server Error. Root cause: User model changes making GST and address mandatory broke hardcoded admin/salesman user creation. Error: 'pydantic_core._pydantic_core.ValidationError: 2 validation errors for User - gst_number Field required, address Field required'. The get_current_user function and login endpoint were not including required GST/address fields for system accounts."
+      - working: true
+        agent: "testing"
+        comment: "FIXED: Updated admin and salesman user creation in both get_current_user function and login endpoint to include mandatory GST/address fields. Added system GST number '27BUILDBIDZ1234F1Z5' and appropriate addresses for admin (BuildBidz Headquarters, Tech Park, Bangalore) and salesmen (BuildBidz Sales Office, Business District, Mumbai). Also updated profile and password change endpoints to handle system accounts. ✅ VERIFICATION: Admin login successful with credentials mohammadjalaluddin1027@gmail.com/5968474644j. ✅ Salesman1 login successful with salesman1@buildbidz.co.in/5968474644j. ✅ Salesman2 login successful with salesman2@buildbidz.co.in/5968474644j. ✅ Profile access working for all system accounts. ✅ Dashboard access functional. ✅ JWT token validation working. ✅ Salesman bidding and My Bids functionality operational. All authentication issues resolved."
+
   - task: "Implement salesman My Bids functionality"
     implemented: true
     working: true
