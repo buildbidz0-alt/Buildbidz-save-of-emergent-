@@ -734,6 +734,20 @@ async def submit_salesman_bid(job_id: str, bid_data: SalesmanBidCreate, current_
     if not job:
         raise HTTPException(status_code=404, detail="Job not found or closed")
     
+    # Validate company GST number format
+    if not validate_gst_number(bid_data.company_gst_number):
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid company GST number format. Please enter a valid 15-digit GST number (e.g., 27ABCDE1234F1Z5)"
+        )
+    
+    # Validate company business address
+    if not validate_business_address(bid_data.company_address):
+        raise HTTPException(
+            status_code=400, 
+            detail="Company address must be at least 20 characters and include complete address details (city, state, pincode)"
+        )
+    
     # Create enhanced bid with company details
     salesman_bid = Bid(
         job_id=job_id,
@@ -749,8 +763,8 @@ async def submit_salesman_bid(job_id: str, bid_data: SalesmanBidCreate, current_
         "company_name": bid_data.company_name,
         "company_contact_phone": bid_data.company_contact_phone,
         "company_email": bid_data.company_email,
-        "company_gst_number": bid_data.company_gst_number,
-        "company_address": bid_data.company_address,
+        "company_gst_number": bid_data.company_gst_number.upper(),  # Store in uppercase
+        "company_address": bid_data.company_address.strip(),
         "submitted_by_salesman": current_user.id,
         "submitted_by_salesman_name": current_user.company_name
     }
