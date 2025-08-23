@@ -396,6 +396,8 @@ async def login(login_data: UserLogin):
                 company_name=salesman_data["company_name"],
                 contact_phone=SUPPORT_PHONE,
                 role=UserRole.SALESMAN,
+                gst_number="27BUILDBIDZ1234F1Z5",  # System GST number
+                address="BuildBidz Sales Office, Business District, Mumbai, Maharashtra - 400001",  # System address
                 is_verified=True,
                 subscription_status="active"
             )
