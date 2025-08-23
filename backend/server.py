@@ -538,8 +538,8 @@ async def update_profile(profile_data: UserUpdate, current_user: User = Depends(
 
 @api_router.post("/auth/change-password")
 async def change_password(password_data: PasswordChange, current_user: User = Depends(get_current_user)):
-    if current_user.id == "admin":
-        raise HTTPException(status_code=403, detail="Admin password cannot be changed")
+    if current_user.id == "admin" or current_user.id in ["salesman1", "salesman2"]:
+        raise HTTPException(status_code=403, detail="System account password cannot be changed")
     
     # Get current user from database
     user = await db.users.find_one({"id": current_user.id})
