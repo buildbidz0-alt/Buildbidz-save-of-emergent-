@@ -589,14 +589,15 @@ const SalesmanDashboard = () => {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Address
+                        Business Address *
                       </label>
                       <textarea
                         value={newBid.company_address}
                         onChange={(e) => setNewBid({...newBid, company_address: e.target.value})}
+                        required
                         rows={2}
                         className="w-full px-4 py-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="Enter company address"
+                        placeholder="Enter complete business address with city, state, and pincode"
                       />
                     </div>
                   </div>
