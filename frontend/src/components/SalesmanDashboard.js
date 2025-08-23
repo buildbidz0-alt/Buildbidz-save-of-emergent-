@@ -382,7 +382,7 @@ const SalesmanDashboard = () => {
                     ))}
                   </div>
                 </div>
-              ) : (
+              ) : activeTab === 'bids' ? (
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-white">My Submitted Bids</h2>
                   <div className="grid gap-6">
@@ -445,6 +445,65 @@ const SalesmanDashboard = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-semibold text-white">Awarded Projects</h2>
+                  {awardedProjects.length === 0 ? (
+                    <div className="glass rounded-lg p-12 text-center">
+                      <Award className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No awarded projects yet</h3>
+                      <p className="text-gray-400">Your awarded bids will appear here when buyers select your proposals</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6">
+                      {awardedProjects.map((project) => (
+                        <div key={project.id} className="glass rounded-lg p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <Award className="h-5 w-5 text-green-400" />
+                                <h3 className="text-lg font-semibold text-white">
+                                  {project.job_info?.title || 'Project Title'}
+                                </h3>
+                                <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">
+                                  AWARDED
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm mb-3">
+                                <span className="text-orange-400 font-semibold">₹{project.price_quote?.toLocaleString()}</span>
+                                <span className="text-gray-400">{project.delivery_estimate}</span>
+                                <span className="text-green-400">• {project.job_info?.category}</span>
+                              </div>
+                              {project.company_represented && (
+                                <div className="bg-gray-700 rounded-lg p-3 mb-3">
+                                  <h4 className="text-sm font-medium text-white mb-2">Project awarded to:</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+                                    <div>
+                                      <span className="font-medium">Company:</span> {project.company_represented.company_name}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Phone:</span> {project.company_represented.contact_phone}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="text-xs text-gray-500">
+                                Awarded on {new Date(project.updated_at || project.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                          {project.notes && (
+                            <div className="border-t border-gray-600 pt-3 mt-3">
+                              <p className="text-sm text-gray-300">
+                                <span className="font-medium">Project Notes:</span> {project.notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
