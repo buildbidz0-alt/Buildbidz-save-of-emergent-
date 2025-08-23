@@ -274,14 +274,17 @@ const SettingsPage = () => {
 
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">
-                    GST Number
+                    GST Number *
                   </label>
                   <input
                     type="text"
                     value={profileData.gst_number}
                     onChange={(e) => setProfileData({...profileData, gst_number: e.target.value})}
+                    required
+                    pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}"
+                    title="Please enter a valid 15-digit GST number (e.g., 27ABCDE1234F1Z5)"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter GST number"
+                    placeholder="Enter GST number (e.g., 27ABCDE1234F1Z5)"
                   />
                 </div>
               </div>
