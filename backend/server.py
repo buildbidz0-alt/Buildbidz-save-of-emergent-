@@ -305,6 +305,20 @@ async def register(user_data: UserCreate):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Validate GST number format
+    if not validate_gst_number(user_data.gst_number):
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid GST number format. Please enter a valid 15-digit GST number (e.g., 27ABCDE1234F1Z5)"
+        )
+    
+    # Validate business address
+    if not validate_business_address(user_data.address):
+        raise HTTPException(
+            status_code=400, 
+            detail="Business address must be at least 20 characters and include complete address details (city, state, pincode)"
+        )
+    
     # Create user with 1-month free trial for buyers
     hashed_password = hash_password(user_data.password)
     trial_expires = datetime.utcnow() + timedelta(days=30) if user_data.role == UserRole.BUYER else None
@@ -314,8 +328,8 @@ async def register(user_data: UserCreate):
         company_name=user_data.company_name,
         contact_phone=user_data.contact_phone,
         role=user_data.role,
-        gst_number=user_data.gst_number,
-        address=user_data.address,
+        gst_number=user_data.gst_number.upper(),  # Store in uppercase
+        address=user_data.address.strip(),
         is_verified=user_data.role == UserRole.SUPPLIER,
         subscription_status="trial" if user_data.role == UserRole.BUYER else "active",
         trial_expires_at=trial_expires
