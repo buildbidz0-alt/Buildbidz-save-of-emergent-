@@ -2568,7 +2568,11 @@ def main():
     
     tester = BuildBidzAPITester()
     
-    # Run all tests
+    # PRIORITY: Critical login investigation first
+    print("\n🚨 PRIORITY: Running critical login investigation first...")
+    tester.test_admin_salesman_login_investigation()
+    
+    # Run all other tests
     tester.test_user_registration()
     tester.test_user_login()
     tester.test_admin_login()
