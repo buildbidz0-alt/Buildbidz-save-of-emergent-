@@ -435,6 +435,7 @@ test_plan:
   salesman_my_bids_testing: "completed"
   file_upload_testing: "completed"
   awarded_projects_testing: "completed"
+  admin_salesman_authentication_testing: "completed"
 
   - task: "Test file upload consistency across all workflows"
     implemented: true
