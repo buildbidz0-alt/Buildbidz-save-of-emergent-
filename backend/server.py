@@ -230,6 +230,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 company_name=salesman_names[user_id],
                 contact_phone=SUPPORT_PHONE,
                 role=UserRole.SALESMAN,
+                gst_number="27BUILDBIDZ1234F1Z5",  # System GST number
+                address="BuildBidz Sales Office, Business District, Mumbai, Maharashtra - 400001",  # System address
                 is_verified=True,
                 subscription_status="active"
             )
