@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
   Building2, LogOut, Plus, TrendingUp, DollarSign, Briefcase,
-  Users, Award, Menu, X, Search, Calendar, MapPin, Clock, Phone, Mail
+  Users, Award, Menu, X, Search, Calendar, MapPin, Clock, Phone, Mail,
+  Upload, FileText
 } from 'lucide-react';
 import axios from 'axios';
 
