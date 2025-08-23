@@ -487,7 +487,7 @@ async def reset_password(reset_data: PasswordResetConfirm):
 # User profile and settings
 @api_router.get("/profile", response_model=User)
 async def get_profile(current_user: User = Depends(get_current_user)):
-    if current_user.id == "admin":
+    if current_user.id == "admin" or current_user.id in ["salesman1", "salesman2"]:
         return current_user
     
     # Refresh user data from database
