@@ -445,6 +445,18 @@ test_plan:
         agent: "testing"
         comment: "✅ AWARDED PROJECTS SECTION FULLY FUNCTIONAL: Awarded Projects tab visible in salesman dashboard sidebar navigation. ✅ EMPTY STATE: Professional empty state displayed with award icon and message 'No awarded projects yet' and helpful description 'Your awarded bids will appear here when buyers select your proposals'. ✅ NAVIGATION: Section loads correctly when clicked and shows appropriate content based on awarded bid status. ✅ DATA STRUCTURE: Properly configured to display awarded bids with company details and project information when bids are awarded. ✅ UI/UX: Consistent styling with rest of dashboard and responsive design. Implementation located in SalesmanDashboard.js (lines 449-508)."
 
+  - task: "Test mandatory GST registration and business address requirements"
+    implemented: true
+    working: true
+    file: "AuthPage.js, SettingsPage.js, SalesmanDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE GST & ADDRESS VALIDATION TESTING COMPLETED: Mandatory compliance requirements fully implemented and functional. ✅ REGISTRATION FORM: GST Number * and Business Address * fields properly marked as required with asterisks. HTML5 pattern validation [0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1} prevents submission with invalid GST formats. ✅ GST FORMAT VALIDATION: Tested invalid formats (12345, 27ABCDE1234F1Z, lowercase letters) - all properly rejected with 'Please match the requested format'. Valid GST (27ABCDE1234F1Z5) passes validation. ✅ BACKEND API VALIDATION: Server-side validation confirmed with clear error 'Invalid GST number format. Please enter a valid 15-digit GST number (e.g., 27ABCDE1234F1Z5)'. ✅ FRONTEND CONSISTENCY: Both frontend HTML5 validation and backend API validation work consistently. ✅ USER EXPERIENCE: Clear error messages guide users to correct format with examples. ✅ FIELD LABELING: All forms display 'GST Number *' and 'Business Address *' indicating mandatory fields. ✅ REGISTRATION SUCCESS: Successful account creation with valid GST and complete address. ✅ CODE REVIEW: SalesmanDashboard.js and SettingsPage.js confirmed to have identical GST/address validation implementation. All mandatory GST and address compliance requirements are properly implemented across registration, profile settings, and salesman bid submission workflows."
+
 agent_communication:
   - agent: "main"
     message: "Starting investigation of bidding system visibility issues. Will test backend endpoints first to identify root cause."
