@@ -2838,8 +2838,8 @@ class BuildBidzAPITester:
             "company_name": "Unauthorized Co",
             "contact_phone": "+91-9876543222",
             "role": "supplier",
-            "gst_number": "29UNAUTH1234F1Z5",
-            "address": "Unauthorized Street"
+            "gst_number": "27UNAUTH1234F1Z5",
+            "address": "Unauthorized Street, Mumbai, Maharashtra - 400001"
         }
         
         success, unauth_response = self.run_test(
