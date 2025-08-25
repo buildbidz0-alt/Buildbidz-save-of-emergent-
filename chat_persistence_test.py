@@ -230,7 +230,7 @@ class ChatPersistenceAPITester:
             "company_name": "Chat Test Supplier Ltd",
             "contact_phone": "+91-9876543211",
             "role": "supplier",
-            "gst_number": "27FGHIJ5678K2L6Z1",
+            "gst_number": "27FGHIJ1234K1Z5",
             "address": "456 Chat Supplier Street, Delhi, Delhi - 110001"
         }
         
