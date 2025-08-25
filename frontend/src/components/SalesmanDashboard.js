@@ -347,6 +347,15 @@ const SalesmanDashboard = () => {
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-white mb-2">{job.title}</h3>
                             <p className="text-gray-400 mb-3">{job.description}</p>
+                            
+                            {/* Job File Attachments */}
+                            <div className="mb-3">
+                              <FileList 
+                                fileType="job" 
+                                itemId={job.id} 
+                                title="Job Attachments"
+                              />
+                            </div>
                             <div className="flex items-center space-x-4 text-sm text-gray-400">
                               <span className="flex items-center">
                                 <MapPin className="h-4 w-4 mr-1" />
