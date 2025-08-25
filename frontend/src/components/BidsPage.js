@@ -290,7 +290,14 @@ const BidsPage = () => {
                 {jobDetails.status}
               </div>
             </div>
-            <p className="text-gray-300">{jobDetails.description}</p>
+            <p className="text-gray-300 mb-4">{jobDetails.description}</p>
+            
+            {/* Job File Attachments */}
+            <FileList 
+              fileType="job" 
+              itemId={jobDetails.id} 
+              title="Job Attachments"
+            />
           </div>
         )}
 
