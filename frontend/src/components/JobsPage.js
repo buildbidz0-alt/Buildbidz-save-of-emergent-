@@ -6,6 +6,7 @@ import {
   Calendar, Package, Users, Wrench, ArrowLeft, Upload, X, FileText
 } from 'lucide-react';
 import axios from 'axios';
+import FileList from './FileList';
 
 const JobsPage = () => {
   const { user, API } = useContext(AuthContext);
