@@ -1203,7 +1203,47 @@ async def mark_chat_read(job_id: str, current_user: User = Depends(get_current_u
     
     return {"message": f"Marked {result.modified_count} messages as read"}
 
-@api_router.get("/dashboard/stats")
+@api_router.post("/admin/system/optimize-chat-indexes")
+async def optimize_chat_indexes(current_user: User = Depends(require_admin)):
+    """Create database indexes to optimize chat performance and ensure message persistence"""
+    try:
+        # Create compound indexes for efficient chat queries
+        await db.chat_messages.create_index([
+            ("job_id", 1),
+            ("created_at", 1)
+        ])
+        
+        await db.chat_messages.create_index([
+            ("sender_id", 1),
+            ("created_at", -1)
+        ])
+        
+        await db.chat_messages.create_index([
+            ("receiver_id", 1),
+            ("read", 1),
+            ("created_at", -1)
+        ])
+        
+        # Ensure no TTL indexes exist (which would cause auto-deletion)
+        indexes = await db.chat_messages.list_indexes().to_list(100)
+        ttl_indexes = [idx for idx in indexes if 'expireAfterSeconds' in idx]
+        
+        if ttl_indexes:
+            for ttl_index in ttl_indexes:
+                await db.chat_messages.drop_index(ttl_index['name'])
+                print(f"Removed TTL index: {ttl_index['name']}")
+        
+        return {
+            "message": "Chat indexes optimized successfully",
+            "indexes_created": 3,
+            "ttl_indexes_removed": len(ttl_indexes),
+            "chat_persistence": "guaranteed - no automatic deletion"
+        }
+    except Exception as e:
+        return {
+            "message": f"Index optimization failed: {str(e)}",
+            "chat_persistence": "may be affected"
+        }
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
         total_users = await db.users.count_documents({})
