@@ -123,7 +123,7 @@ class FileAttachmentTester:
             "company_name": "File Test Supplier Ltd",
             "contact_phone": "+91-9876543211",
             "role": "supplier",
-            "gst_number": "29FILESUP1234F1Z6",
+            "gst_number": "29ABCDE1234F1Z6",
             "address": "456 File Supplier Street, Delhi, Delhi - 110001"
         }
         
