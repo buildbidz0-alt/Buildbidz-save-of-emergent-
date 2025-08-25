@@ -553,6 +553,15 @@ const JobCard = ({ job, isOwner }) => {
 
       <p className="text-gray-300 mb-4 line-clamp-2">{job.description}</p>
 
+      {/* File Attachments */}
+      <div className="mb-4">
+        <FileList 
+          fileType="job" 
+          itemId={job.id} 
+          title="Job Attachments"
+        />
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-sm">
         {job.quantity && (
           <div className="flex items-center text-gray-400">
