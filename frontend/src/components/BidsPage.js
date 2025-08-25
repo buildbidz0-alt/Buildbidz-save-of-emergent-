@@ -681,6 +681,15 @@ const BidCard = ({ bid, onAward, canAward, jobId }) => {
         </div>
       )}
 
+      {/* Bid File Attachments */}
+      <div className="mb-4">
+        <FileList 
+          fileType="bid" 
+          itemId={bid.id} 
+          title="Bid Attachments"
+        />
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-400">
           Contact: {bid.supplier_info?.contact_phone}
