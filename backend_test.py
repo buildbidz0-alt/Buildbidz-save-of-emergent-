@@ -2610,6 +2610,9 @@ def main():
     tester.test_salesman_my_bids_edge_cases()
     tester.test_salesman_my_bids_comprehensive_workflow()
     
+    # CRITICAL REVIEW REQUEST: Chat persistence investigation
+    tester.test_chat_persistence_investigation()
+    
     # Print summary
     tester.print_summary()
     
