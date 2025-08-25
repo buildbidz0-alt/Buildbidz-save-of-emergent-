@@ -99,7 +99,7 @@ class FileAttachmentTester:
             "company_name": "File Test Construction Co",
             "contact_phone": "+91-9876543210",
             "role": "buyer",
-            "gst_number": "29FILEBUY1234F1Z5",
+            "gst_number": "29ABCDE1234F1Z5",
             "address": "123 File Test Street, Mumbai, Maharashtra - 400001"
         }
         
