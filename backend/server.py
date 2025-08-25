@@ -1129,41 +1129,70 @@ async def get_user_chats(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
         return await get_all_chats(current_user)
     
-    # Get jobs where user is involved and job is awarded
+    # Get jobs where user has participated in chat conversations
+    # This ensures chat history remains accessible regardless of job status changes
     user_chats = []
     
-    if current_user.role == UserRole.BUYER:
-        # Get jobs posted by this buyer that are awarded
-        jobs = await db.jobs.find({"posted_by": current_user.id, "status": "awarded"}).to_list(100)
-    else:
-        # Get jobs where this supplier has winning bids
-        awarded_bids = await db.bids.find({"supplier_id": current_user.id, "status": "awarded"}).to_list(100)
-        job_ids = [bid["job_id"] for bid in awarded_bids]
-        jobs = await db.jobs.find({"id": {"$in": job_ids}}).to_list(100)
+    # Get all jobs where user has sent or received messages
+    pipeline = [
+        {
+            "$match": {
+                "$or": [
+                    {"sender_id": current_user.id},
+                    {"receiver_id": current_user.id}
+                ]
+            }
+        },
+        {
+            "$group": {
+                "_id": "$job_id",
+                "message_count": {"$sum": 1},
+                "last_message_time": {"$max": "$created_at"},
+                "unread_count": {
+                    "$sum": {
+                        "$cond": [
+                            {
+                                "$and": [
+                                    {"$eq": ["$receiver_id", current_user.id]},
+                                    {"$eq": ["$read", False]}
+                                ]
+                            },
+                            1,
+                            0
+                        ]
+                    }
+                }
+            }
+        }
+    ]
     
-    for job in jobs:
-        message_count = await db.chat_messages.count_documents({"job_id": job["id"]})
-        unread_count = await db.chat_messages.count_documents({
-            "job_id": job["id"], 
-            "receiver_id": current_user.id, 
-            "read": False
-        })
-        
-        last_message = await db.chat_messages.find_one(
-            {"job_id": job["id"]}, 
-            sort=[("created_at", -1)]
-        )
-        
-        user_chats.append({
-            "job_id": job["id"],
-            "job_title": job["title"],
-            "message_count": message_count,
-            "unread_count": unread_count,
-            "last_message_at": last_message["created_at"] if last_message else None,
-            "last_message": last_message["message"] if last_message else None
-        })
+    chat_stats = await db.chat_messages.aggregate(pipeline).to_list(100)
     
-    return sorted(user_chats, key=lambda x: x["last_message_at"] or x["job_id"], reverse=True)
+    # Get job details for each chat
+    for chat_stat in chat_stats:
+        job_id = chat_stat["_id"]
+        job = await db.jobs.find_one({"id": job_id})
+        
+        if job:
+            # Get last message content
+            last_message = await db.chat_messages.find_one(
+                {"job_id": job_id}, 
+                sort=[("created_at", -1)]
+            )
+            
+            user_chats.append({
+                "job_id": job_id,
+                "job_title": job["title"],
+                "job_status": job.get("status", "unknown"),
+                "message_count": chat_stat["message_count"],
+                "unread_count": chat_stat["unread_count"],
+                "last_message_at": chat_stat["last_message_time"],
+                "last_message": last_message["message"] if last_message else None,
+                "last_sender": last_message.get("sender_id") if last_message else None
+            })
+    
+    # Sort by last message time (most recent first)
+    return sorted(user_chats, key=lambda x: x["last_message_at"] or datetime.min, reverse=True)
 
 @api_router.post("/chats/{job_id}/mark-read")
 async def mark_chat_read(job_id: str, current_user: User = Depends(get_current_user)):
