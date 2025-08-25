@@ -472,6 +472,7 @@ test_plan:
   file_upload_testing: "completed"
   awarded_projects_testing: "completed"
   admin_salesman_authentication_testing: "completed"
+  file_attachment_investigation: "completed"
 
   - task: "Test file upload consistency across all workflows"
     implemented: true
