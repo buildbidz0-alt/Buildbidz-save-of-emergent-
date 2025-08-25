@@ -1244,6 +1244,70 @@ async def optimize_chat_indexes(current_user: User = Depends(require_admin)):
             "message": f"Index optimization failed: {str(e)}",
             "chat_persistence": "may be affected"
         }
+
+@api_router.get("/admin/chat-analytics")
+async def get_chat_analytics(current_user: User = Depends(require_admin)):
+    """Get comprehensive chat analytics and persistence verification"""
+    try:
+        # Get total message statistics
+        total_messages = await db.chat_messages.count_documents({})
+        
+        # Get message age distribution
+        now = datetime.utcnow()
+        day_ago = now - timedelta(days=1)
+        week_ago = now - timedelta(weeks=1)
+        month_ago = now - timedelta(days=30)
+        
+        messages_today = await db.chat_messages.count_documents({
+            "created_at": {"$gte": day_ago}
+        })
+        
+        messages_week = await db.chat_messages.count_documents({
+            "created_at": {"$gte": week_ago}
+        })
+        
+        messages_month = await db.chat_messages.count_documents({
+            "created_at": {"$gte": month_ago}
+        })
+        
+        messages_older = total_messages - messages_month
+        
+        # Get oldest message
+        oldest_message = await db.chat_messages.find_one(
+            {}, sort=[("created_at", 1)]
+        )
+        
+        # Get active conversations
+        active_chats = await db.chat_messages.distinct("job_id")
+        
+        # Check for any TTL indexes that might cause deletion
+        indexes = await db.chat_messages.list_indexes().to_list(100)
+        ttl_indexes = [idx for idx in indexes if 'expireAfterSeconds' in idx]
+        
+        return {
+            "total_messages": total_messages,
+            "active_conversations": len(active_chats),
+            "message_distribution": {
+                "last_24_hours": messages_today,
+                "last_week": messages_week,
+                "last_month": messages_month,
+                "older_than_month": messages_older
+            },
+            "oldest_message_date": oldest_message.get("created_at") if oldest_message else None,
+            "data_retention": {
+                "automatic_deletion": len(ttl_indexes) > 0,
+                "ttl_indexes_found": len(ttl_indexes),
+                "persistence_guaranteed": len(ttl_indexes) == 0
+            },
+            "system_health": "chat_persistence_active" if len(ttl_indexes) == 0 else "chat_deletion_risk"
+        }
+    except Exception as e:
+        return {
+            "error": f"Analytics generation failed: {str(e)}",
+            "system_health": "unknown"
+        }
+
+@api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
         total_users = await db.users.count_documents({})
