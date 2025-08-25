@@ -7,6 +7,7 @@ import {
   Upload, FileText
 } from 'lucide-react';
 import axios from 'axios';
+import FileList from './FileList';
 
 const BidsPage = () => {
   const { user, API } = useContext(AuthContext);
