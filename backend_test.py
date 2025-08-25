@@ -2565,7 +2565,7 @@ class BuildBidzAPITester:
             "company_name": "Chat Test Supplier Ltd",
             "contact_phone": "+91-9876543221",
             "role": "supplier",
-            "gst_number": "27FGHIJ5678K2L6",
+            "gst_number": "27FGHIJ5678K2Z6",
             "address": "456 Chat Supplier Street, Delhi, Delhi - 110001"
         }
         
