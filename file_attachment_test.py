@@ -352,7 +352,7 @@ class FileAttachmentTester:
             "company_name": "File Test Construction Pvt Ltd",
             "company_contact_phone": "+91 9876543220",
             "company_email": "filetest@construction.com",
-            "company_gst_number": "27FILETEST1234F1Z5",
+            "company_gst_number": "27ABCDE1234F1Z5",
             "company_address": "789 File Test Avenue, Bangalore, Karnataka - 560001"
         }
         
