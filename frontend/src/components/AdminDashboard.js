@@ -990,8 +990,15 @@ const JobDetailView = ({ job }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
-          <p className="text-gray-300">{job.description}</p>
+          <p className="text-gray-300 mb-4">{job.description}</p>
         </div>
+
+        {/* Job File Attachments */}
+        <FileList 
+          fileType="job" 
+          itemId={job.id} 
+          title="Job Attachments"
+        />
       </div>
 
       {/* Bids Received */}
