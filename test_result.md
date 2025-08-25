@@ -245,6 +245,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: Salesman My Bids functionality working perfectly. ✅ AUTHENTICATION: Both salesman1@buildbidz.co.in and salesman2@buildbidz.co.in login successfully. ✅ BID SUBMISSION: Multiple salesman bids submitted with complete company details (Alpha Construction Ltd ₹125,000, Beta Builders Pvt Ltd ₹98,000). ✅ MY BIDS RETRIEVAL: GET /api/bids/my returns all salesman bids with proper data structure including company_represented field with complete company info. ✅ AUTHORIZATION: Salesmen can only see their own bids, proper isolation between salesman1 and salesman2. ✅ DATA STRUCTURE: Each bid includes original details, job information, company_represented field, bid_type='salesman_bid', proper ObjectId serialization. ✅ PERSISTENCE: Bid data persists correctly with timestamps and status fields. ✅ PERFORMANCE: Response time 0.022 seconds. All critical review requirements met with 94.1% test success rate (96/102 tests passed)."
 
+  - task: "Investigate chat history persistence issue"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🔍 CRITICAL CHAT PERSISTENCE INVESTIGATION COMPLETED: Comprehensive investigation of reported chat history deletion issue. ✅ CHAT MESSAGE STORAGE: Successfully created buyer and supplier accounts, established chat eligibility through job posting and bid awarding, sent 6 test messages (4 from buyer, 2 from supplier) with proper timestamps. All messages stored correctly in database with unique IDs and proper metadata. ✅ IMMEDIATE RETRIEVAL: All 6 messages retrieved immediately after sending with correct content, timestamps (2025-08-25T17:21:42.955000 to 2025-08-25T17:21:43.477000), and sender information. Messages returned in chronological order as expected. ✅ MESSAGE PERSISTENCE: Re-retrieved messages after delay - all 6 messages still present with identical content and timestamps. No automatic deletion detected during test session. ✅ HISTORICAL DATA VERIFICATION: Found 8 total chat conversations in system, including 7 conversations from 5+ days ago (116-118 hours old) with messages still intact. This proves messages persist well beyond the reported 'few days' timeframe. ✅ DATABASE INSPECTION: Admin chat management shows all conversations with accurate message counts and timestamps. No TTL indexes or automatic cleanup mechanisms detected. ✅ API FUNCTIONALITY: All chat endpoints working correctly - GET /api/jobs/{job_id}/chat returns proper message history, POST endpoints create messages successfully, authorization controls prevent unauthorized access (403 for non-participants). ✅ DATA INTEGRITY: All messages have proper timestamps, sender info, content preservation, and chronological ordering. Mark-as-read functionality working (marked 4 messages as read). 📊 CONCLUSION: NO AUTOMATIC DELETION DETECTED. Messages persist correctly with proper timestamps and metadata. Historical data shows conversations from 5+ days ago are still accessible. The reported issue may be related to user access patterns, browser cache, or specific edge cases not covered in this comprehensive test. All core chat persistence functionality is working as expected."
+
 frontend:
   - task: "Fix bids display on BidsPage for buyers"
     implemented: true
