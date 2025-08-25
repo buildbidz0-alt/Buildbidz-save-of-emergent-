@@ -514,7 +514,7 @@ class FileAttachmentTester:
             "company_name": "Other Supplier Co",
             "contact_phone": "+91-9876543299",
             "role": "supplier",
-            "gst_number": "29OTHER1234F1Z5",
+            "gst_number": "29ABCDE1234F1Z7",
             "address": "999 Other Street, Chennai, Tamil Nadu - 600001"
         }
         
