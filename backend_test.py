@@ -2838,7 +2838,7 @@ class BuildBidzAPITester:
             "company_name": "Unauthorized Co",
             "contact_phone": "+91-9876543222",
             "role": "supplier",
-            "gst_number": "27MNOPQ9876R3S4",
+            "gst_number": "27MNOPQ9876R3Z4",
             "address": "Unauthorized Street, Mumbai, Maharashtra - 400001"
         }
         
