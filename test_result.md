@@ -103,19 +103,15 @@
 #====================================================================================================
 
 user_problem_statement: |
-  Test the bid file download functionality fix in BuildBidz backend:
-  The user reported that bid files are visible to sellers and salesmen but cannot be downloaded. 
-  Fixed the authorization logic in the download endpoint for bid files.
-  Key areas to test:
-  1. Bid file visibility - GET /api/files/bid/{bid_id}
-  2. Bid file download - GET /api/download/bid/{file_id}
-  3. Complete workflow test with different user roles
-  Expected behavior after fix:
-  - Suppliers can download their own bid files
-  - Salesmen can download ALL bid files (for oversight)
-  - Buyers can download bid files submitted to their jobs
-  - Admin can download all bid files
-  - Unauthorized users cannot download (403 error)
+  CRITICAL BUG FIX: Bid files are visible to sellers and salesmen but cannot be downloaded.
+  Users should be able to view and download bid files attached. Visibility and download access 
+  should be available to both seller and salesman for authorized bid files.
+  
+  RESOLUTION: Fixed authorization logic in download endpoint for bid files to allow:
+  - Suppliers to download their own bid files
+  - Salesmen to download all bid files (for oversight)
+  - Buyers to download bid files submitted to their jobs
+  - Admin to download all bid files
 
 backend:
   - task: "Test bid file download functionality fix"
