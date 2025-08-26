@@ -1481,18 +1481,29 @@ async def get_job_files(job_id: str, current_user: User = Depends(get_current_us
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    # Allow job owner, suppliers who bid, and admin to view files
+    # Role-based access control for job files
     if current_user.role == UserRole.ADMIN:
         # Admin can view all files
         pass
-    elif job["posted_by"] == current_user.id:
-        # Job owner can view files
+    elif current_user.role == UserRole.SALESMAN:
+        # Salesmen can view all job files to bid on behalf of companies
         pass
+    elif job["posted_by"] == current_user.id:
+        # Job owner (buyer) can view their own job files
+        pass
+    elif current_user.role == UserRole.SUPPLIER:
+        # Suppliers can view files for jobs they can potentially bid on
+        # This allows suppliers to see requirements before bidding
+        if job.get("status") == "open":
+            # Allow access to open jobs for potential bidding
+            pass
+        else:
+            # For closed jobs, only allow if supplier has bid on it
+            supplier_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id})
+            if not supplier_bid:
+                raise HTTPException(status_code=403, detail="Not authorized to view files for this job")
     else:
-        # Check if user is a supplier who has bid on this job
-        supplier_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id})
-        if not supplier_bid:
-            raise HTTPException(status_code=403, detail="Not authorized to view files for this job")
+        raise HTTPException(status_code=403, detail="Not authorized to view files for this job")
     
     files = await db.job_files.find({"job_id": job_id}).sort("uploaded_at", -1).to_list(100)
     return [{
