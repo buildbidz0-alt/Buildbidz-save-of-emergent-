@@ -71,7 +71,7 @@ class ChatInitializationTester:
             "company_name": "Chat Test Buyer Co",
             "contact_phone": "+91-9876543220",
             "role": "buyer",
-            "gst_number": "27CHATBY1234F1Z5",
+            "gst_number": "27ABCDE1234F1Z5",
             "address": "123 Chat Buyer Street, Mumbai, Maharashtra - 400001"
         }
         
