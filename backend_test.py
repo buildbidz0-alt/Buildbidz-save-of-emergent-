@@ -3047,7 +3047,7 @@ class BuildBidzAPITester:
                 "company_name": "Test Salesman Company Ltd",
                 "company_contact_phone": "+91 9876543222",
                 "company_email": "test@salesmancompany.com",
-                "company_gst_number": "27TESTSALES1234F1Z5",
+                "company_gst_number": "27PQRST5678U9Z1",
                 "company_address": "789 Salesman Test Street, Bangalore, Karnataka - 560001"
             }
             
