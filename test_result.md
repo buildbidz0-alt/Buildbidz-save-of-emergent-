@@ -171,6 +171,42 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ MESSAGE DELETION FUNCTIONALITY FULLY IMPLEMENTED: DELETE /api/messages/{message_id} endpoint working correctly. ✅ USER PERMISSIONS: Users can successfully delete their own messages - proper ownership validation. ✅ ADMIN PERMISSIONS: Admin can delete any message as expected. ✅ FILE CLEANUP: Associated files automatically deleted from both disk and database when message is deleted. ✅ AUTHORIZATION: Users cannot delete others' messages - properly blocked with 403 status. ✅ ERROR HANDLING: Non-existent messages return 404 status appropriately. ✅ SECURITY: Proper authorization checks prevent unauthorized deletions. Message deletion working perfectly with complete file cleanup."
+
+  - task: "Implement enhanced message sending with files"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ENHANCED MESSAGE SENDING FULLY FUNCTIONAL: POST /api/jobs/{job_id}/chat/with-files endpoint working perfectly. ✅ FILE ATTACHMENT SUPPORT: Messages can be sent with PDF and JPG file attachments. ✅ MULTIPLE FILES: Support for multiple file attachments per message. ✅ TEXT + FILES: Messages can contain both text content and file attachments. ✅ FILE VALIDATION: Same validation as upload endpoint - file type and size limits enforced. ✅ AUTHORIZATION: Only chat participants can send messages with files. ✅ METADATA STORAGE: File attachment metadata properly stored with chat messages. Enhanced messaging functionality working as designed."
+
+  - task: "Implement chat file retrieval endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CHAT FILE RETRIEVAL ENDPOINT WORKING: GET /api/files/chat/{job_id} endpoint fully functional. ✅ FILE LISTING: Returns complete list of files uploaded to specific chat with metadata (id, filename, size, content_type, uploaded_at, uploaded_by). ✅ AUTHORIZATION: Proper access control - only chat participants and admin can retrieve file lists. ✅ MULTI-USER ACCESS: Buyer, supplier, and admin all successfully tested. ✅ SECURITY: Non-participants properly blocked with 403 status. File retrieval working correctly with proper authorization."
+
+  - task: "Test backward compatibility with original chat endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BACKWARD COMPATIBILITY FULLY MAINTAINED: Original POST /api/jobs/{job_id}/chat endpoint still works perfectly for text messages. ✅ MIXED MESSAGE FORMATS: Chat retrieval handles both old text-only messages and new messages with file attachments seamlessly. ✅ NO BREAKING CHANGES: Existing functionality preserved while adding new file sharing capabilities. ✅ MESSAGE HISTORY: Both message types display correctly in chat history. Backward compatibility successfully maintained."
   
   - task: "Verify no automatic message deletion"
     implemented: true
