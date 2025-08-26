@@ -19,7 +19,10 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchChats();
