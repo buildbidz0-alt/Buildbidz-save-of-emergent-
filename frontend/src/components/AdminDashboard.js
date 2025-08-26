@@ -1098,6 +1098,15 @@ const BidDetailView = ({ bid }) => {
           </div>
         )}
 
+        {/* Bid File Attachments */}
+        <div className="mb-6">
+          <FileList 
+            fileType="bid" 
+            itemId={bid.id} 
+            title="Bid Attachments"
+          />
+        </div>
+
         {/* Supplier Info */}
         {bid.supplier_info && (
           <div className="border-t border-gray-700 pt-4">
