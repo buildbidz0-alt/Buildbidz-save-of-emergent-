@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../App';
 import { 
   Building2, ArrowLeft, Send, MessageCircle, Users, Clock, 
-  CheckCircle, Phone, Mail
+  CheckCircle, Phone, Mail, Paperclip, X, Download, FileText,
+  Image, Trash2
 } from 'lucide-react';
 import axios from 'axios';
 
