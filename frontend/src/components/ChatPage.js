@@ -74,7 +74,9 @@ const ChatPage = () => {
     if (!selectedChat) return;
     
     try {
-      const response = await axios.get(`${API}/jobs/${selectedChat.job_id}/chat`);
+      const response = await axios.get(`${API}/jobs/${selectedChat.job_id}/chat`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
@@ -85,7 +87,9 @@ const ChatPage = () => {
     if (!selectedChat) return;
     
     try {
-      await axios.post(`${API}/chats/${selectedChat.job_id}/mark-read`);
+      await axios.post(`${API}/chats/${selectedChat.job_id}/mark-read`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       // Update local chat data
       setChats(chats.map(chat => 
         chat.job_id === selectedChat.job_id 
