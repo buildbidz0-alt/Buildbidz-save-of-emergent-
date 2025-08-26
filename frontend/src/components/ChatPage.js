@@ -186,7 +186,9 @@ const ChatPage = () => {
     }
 
     try {
-      await axios.delete(`${API}/messages/${messageId}`);
+      await axios.delete(`${API}/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       // Refresh messages after deletion
       await fetchMessages();
       fetchChats(); // Refresh chat list
@@ -199,7 +201,8 @@ const ChatPage = () => {
   const downloadFile = async (fileId, filename) => {
     try {
       const response = await axios.get(`${API}/download/chat/${fileId}`, {
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
       // Create download link
