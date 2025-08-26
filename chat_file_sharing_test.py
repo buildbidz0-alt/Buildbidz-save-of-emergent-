@@ -104,7 +104,7 @@ class ChatFileSharingTester:
             "company_name": "Chat Test Construction Co",
             "contact_phone": "+91-9876543210",
             "role": "buyer",
-            "gst_number": "29CHATBUY1234F1Z5",
+            "gst_number": "27ABCDE1234F1Z5",
             "address": "123 Chat Test Street, Mumbai, Maharashtra - 400001"
         }
         
