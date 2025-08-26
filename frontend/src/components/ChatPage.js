@@ -381,7 +381,13 @@ const ChatPage = () => {
                   <div className="text-center py-8">
                     <MessageCircle className="h-16 w-16 text-gray-500 mx-auto mb-4" />
                     <p className="text-gray-400">No messages yet</p>
-                    <p className="text-sm text-gray-500">Start the conversation!</p>
+                    {selectedChat.other_participant ? (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Start a conversation with {selectedChat.other_participant.company_name}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500 mt-2">Start the conversation!</p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
