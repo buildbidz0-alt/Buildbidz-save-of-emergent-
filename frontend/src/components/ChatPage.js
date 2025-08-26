@@ -356,7 +356,7 @@ const ChatPage = () => {
                         }`}
                       >
                         <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative group ${
                             message.sender_id === user.id
                               ? 'bg-orange-600 text-white'
                               : 'bg-gray-700 text-white'
@@ -367,10 +367,56 @@ const ChatPage = () => {
                               {message.sender_info.company_name} ({message.sender_info.role})
                             </div>
                           )}
-                          <p className="text-sm">{message.message}</p>
-                          <p className="text-xs opacity-75 mt-1">
-                            {formatTime(message.created_at)}
-                          </p>
+                          
+                          {/* Message text */}
+                          {message.message && (
+                            <p className="text-sm mb-2">{message.message}</p>
+                          )}
+                          
+                          {/* File attachments */}
+                          {message.file_attachments && message.file_attachments.length > 0 && (
+                            <div className="space-y-2 mb-2">
+                              {message.file_attachments.map((file, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center space-x-2 p-2 bg-black bg-opacity-20 rounded border"
+                                >
+                                  {getFileIcon(file.filename)}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">
+                                      {file.filename}
+                                    </p>
+                                    <p className="text-xs opacity-75">
+                                      {formatFileSize(file.size)}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => downloadFile(file.id, file.filename)}
+                                    className="text-white hover:text-orange-300 transition-colors"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs opacity-75">
+                              {formatTime(message.created_at)}
+                            </p>
+                            
+                            {/* Delete button for own messages */}
+                            {message.sender_id === user.id && (
+                              <button
+                                onClick={() => deleteMessage(message.id)}
+                                className="opacity-0 group-hover:opacity-100 ml-2 text-red-300 hover:text-red-200 transition-all"
+                                title="Delete message"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
