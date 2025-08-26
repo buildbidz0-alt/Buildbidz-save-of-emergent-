@@ -1351,8 +1351,7 @@ async def get_user_chats(current_user: User = Depends(get_current_user)):
     if current_user.role == UserRole.ADMIN:
         return await get_all_chats(current_user)
     
-    # Get jobs where user has participated in chat conversations
-    # This ensures chat history remains accessible regardless of job status changes
+    # Get jobs where user has participated in chat conversations OR has awarded jobs
     user_chats = []
     
     # Get all jobs where user has sent or received messages
@@ -1389,18 +1388,31 @@ async def get_user_chats(current_user: User = Depends(get_current_user)):
     ]
     
     chat_stats = await db.chat_messages.aggregate(pipeline).to_list(100)
+    chat_job_ids = set()
     
-    # Get job details for each chat
+    # Get job details for each chat with messages
     for chat_stat in chat_stats:
         job_id = chat_stat["_id"]
         job = await db.jobs.find_one({"id": job_id})
         
         if job:
+            chat_job_ids.add(job_id)
             # Get last message content
             last_message = await db.chat_messages.find_one(
                 {"job_id": job_id}, 
                 sort=[("created_at", -1)]
             )
+            
+            # Get other participant info
+            other_participant = None
+            if job["posted_by"] == current_user.id:
+                # Current user is buyer, find awarded supplier
+                awarded_bid = await db.bids.find_one({"job_id": job_id, "status": "awarded"})
+                if awarded_bid:
+                    other_participant = await db.users.find_one({"id": awarded_bid["supplier_id"]})
+            else:
+                # Current user is supplier, other participant is buyer
+                other_participant = await db.users.find_one({"id": job["posted_by"]})
             
             user_chats.append({
                 "job_id": job_id,
@@ -1410,10 +1422,74 @@ async def get_user_chats(current_user: User = Depends(get_current_user)):
                 "unread_count": chat_stat["unread_count"],
                 "last_message_at": chat_stat["last_message_time"],
                 "last_message": last_message["message"] if last_message else None,
-                "last_sender": last_message.get("sender_id") if last_message else None
+                "last_sender": last_message.get("sender_id") if last_message else None,
+                "other_participant": {
+                    "id": other_participant["id"],
+                    "company_name": other_participant["company_name"],
+                    "role": other_participant["role"]
+                } if other_participant else None
             })
     
-    # Sort by last message time (most recent first)
+    # Also get awarded jobs where current user is involved but no messages yet
+    if current_user.role == UserRole.BUYER:
+        # Get jobs posted by buyer that are awarded but don't have chats yet
+        awarded_jobs = await db.jobs.find({
+            "posted_by": current_user.id,
+            "status": "awarded"
+        }).to_list(100)
+        
+        for job in awarded_jobs:
+            if job["id"] not in chat_job_ids:
+                # This awarded job doesn't have messages yet
+                awarded_bid = await db.bids.find_one({"job_id": job["id"], "status": "awarded"})
+                if awarded_bid:
+                    supplier = await db.users.find_one({"id": awarded_bid["supplier_id"]})
+                    user_chats.append({
+                        "job_id": job["id"],
+                        "job_title": job["title"],
+                        "job_status": job.get("status", "awarded"),
+                        "message_count": 0,
+                        "unread_count": 0,
+                        "last_message_at": None,
+                        "last_message": None,
+                        "last_sender": None,
+                        "other_participant": {
+                            "id": supplier["id"],
+                            "company_name": supplier["company_name"],
+                            "role": supplier["role"]
+                        } if supplier else None
+                    })
+    
+    elif current_user.role in [UserRole.SUPPLIER, UserRole.SALESMAN]:
+        # Get jobs where current user has awarded bids but no messages yet
+        awarded_bids = await db.bids.find({
+            "supplier_id": current_user.id,
+            "status": "awarded"
+        }).to_list(100)
+        
+        for bid in awarded_bids:
+            if bid["job_id"] not in chat_job_ids:
+                # This awarded job doesn't have messages yet
+                job = await db.jobs.find_one({"id": bid["job_id"]})
+                if job:
+                    buyer = await db.users.find_one({"id": job["posted_by"]})
+                    user_chats.append({
+                        "job_id": job["id"],
+                        "job_title": job["title"],
+                        "job_status": job.get("status", "awarded"),
+                        "message_count": 0,
+                        "unread_count": 0,
+                        "last_message_at": None,
+                        "last_message": None,
+                        "last_sender": None,
+                        "other_participant": {
+                            "id": buyer["id"],
+                            "company_name": buyer["company_name"],
+                            "role": buyer["role"]
+                        } if buyer else None
+                    })
+    
+    # Sort by last message time (most recent first), with awarded jobs without messages at the top
     return sorted(user_chats, key=lambda x: x["last_message_at"] or datetime.min, reverse=True)
 
 @api_router.post("/chats/{job_id}/mark-read")
