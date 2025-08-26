@@ -299,62 +299,53 @@ backend:
         comment: "🔍 CRITICAL FILE ATTACHMENT INVESTIGATION COMPLETED - COMPREHENSIVE ANALYSIS: Conducted exhaustive investigation of file attachment visibility issues in BuildBidz as specifically requested in review. ✅ FILE UPLOAD STORAGE TESTING: Successfully created test buyer and supplier accounts, posted job with 3 file attachments (project_specs.pdf, requirements.txt, blueprint.jpg), submitted supplier bid with 3 file attachments (quotation.pdf, certifications.docx, material_samples.jpg), and salesman bid with 2 file attachments. All files uploaded successfully to backend with proper validation (10MB size limit enforced, allowed file types: PDF, JPG, PNG, DOCX, XLSX, TXT, GIF, DOC, XLS). ✅ FILE RETRIEVAL ENDPOINTS VERIFICATION: GET /api/files/job/{job_id} returns complete file lists with metadata (id, filename, size, content_type, uploaded_at) - tested with job owner, suppliers who bid, and admin access. GET /api/files/bid/{bid_id} returns bid file lists correctly for bid owner, job owner, and admin. GET /api/download/{file_type}/{file_id} successfully downloads files with proper content-type headers and file content. All endpoints returning 200 status codes with correct data. ✅ FILE ACCESS PERMISSIONS COMPREHENSIVE TESTING: Job files accessible to job owner (buyer), suppliers who bid on the job, admin users, and salesman users. Bid files accessible to bid owner (supplier/salesman), job owner (buyer), and admin users. Unauthorized access properly blocked with 403 status codes for suppliers who haven't bid. Unauthenticated access blocked with 401/403 status codes. ✅ DATABASE FILE STORAGE VERIFICATION: job_files collection contains 10 files with complete metadata structure (id, job_id, original_filename, stored_filename, file_path, file_size, content_type, uploaded_by, uploaded_at). bid_files collection contains 3 files with identical metadata structure. All required fields present and properly structured with correct data types. ✅ FILE SYSTEM STORAGE VERIFICATION: Files correctly stored in /app/backend/uploads/jobs/{job_id}/ and /app/backend/uploads/bids/{bid_id}/ directories with unique filenames. File downloads successful indicating files exist on disk with proper read permissions. Directory structure properly organized by job/bid IDs. ✅ CROSS-ROLE FILE ACCESS COMPREHENSIVE TESTING: Admin access to all job and bid files ✅, Buyer access to their own job files and all bid files on their jobs ✅, Supplier access to job files they can bid on and their own bid files ✅, Salesman access to job files and their own bid files ✅. Authorization matrix working correctly across all user roles and scenarios. ✅ FILE VALIDATION AND SECURITY TESTING: Large files (>10MB) correctly rejected with 413 Payload Too Large status, invalid file types (.exe) rejected with 415 Unsupported Media Type status, all valid file types (PDF, JPG, PNG, TXT, DOCX, XLSX) accepted with 200 status. File content properly preserved during upload/download cycle. 📊 COMPREHENSIVE TEST RESULTS: 36 total tests executed, 33 tests passed, 3 minor issues identified (91.7% success rate). Minor issues: salesman access to job files requires bid submission, unauthenticated access returns 403 instead of 401 (both are security-appropriate), GST validation in salesman bids (resolved). 🎯 CRITICAL CONCLUSION: FILE ATTACHMENT SYSTEM IS FULLY FUNCTIONAL AND WORKING AS DESIGNED. Files are visible and accessible to all relevant parties according to proper authorization rules. No critical visibility issues found - the system correctly handles file upload, storage, retrieval, and cross-role access. The reported file visibility issues are NOT due to backend system problems - all file attachment functionality is operating correctly."
 
 frontend:
-  - task: "Fix bids display on BidsPage for buyers"
-    implemented: true
-    working: true
-    file: "BidsPage.js"
+  - task: "Add file upload UI to chat interface"
+    implemented: false
+    working: false
+    file: "ChatPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "BidsPage component exists but may have issues fetching/displaying bids"
-      - working: "NA"
-        agent: "testing"
-        comment: "Backend API now working correctly (GET /jobs/{job_id}/bids returns proper data). Frontend testing not performed as per system limitations - main agent should verify frontend integration."
-      - working: true
-        agent: "testing"
-        comment: "TESTED: Application is running successfully. Admin dashboard shows 6 total bids indicating bidding system is functional. BidsPage component properly implemented with bid display functionality, supplier info display, and bid awarding features. Frontend integration appears to be working based on existing data in system."
+        comment: "Need to add file upload button, drag-drop area, file picker for PDF and JPG files in chat"
   
-  - task: "Fix My Bids display for suppliers"
-    implemented: true
-    working: true
-    file: "BidsPage.js"
+  - task: "Implement file preview and download in chat messages"
+    implemented: false
+    working: false
+    file: "ChatPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "MyBids tab exists but may not be properly displaying supplier's bids"
-      - working: "NA"
-        agent: "testing"
-        comment: "Backend API now working correctly (GET /bids/my returns proper data). Frontend testing not performed as per system limitations - main agent should verify frontend integration."
-      - working: true
-        agent: "testing"
-        comment: "TESTED: My Bids functionality is working. BidsPage component includes MyBidCard component with proper status display, bid details, and job information. The presence of 6 bids in admin dashboard confirms suppliers can successfully submit bids and view them."
+        comment: "Messages with attachments should show file preview, download links, and proper file icons"
   
-  - task: "Add detailed views to AdminDashboard"
-    implemented: true
-    working: true
-    file: "AdminDashboard.js"
-    stuck_count: 1
+  - task: "Add message deletion functionality to UI"
+    implemented: false
+    working: false
+    file: "ChatPage.js"
+    stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Admin panel shows basic tables but missing clickable detailed views"
-      - working: "NA"
+        comment: "Users should see delete button on their own messages with confirmation dialog"
+  
+  - task: "Update message display for file attachments"
+    implemented: false
+    working: false
+    file: "ChatPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
         agent: "main"
-        comment: "IMPLEMENTED: Added detailed modal views for users (email, masked password, jobs, bids), jobs (full details + bids), and bids (full info + supplier/job details). Added Eye icon buttons to all tables."
-      - working: "NA"
-        agent: "testing"
-        comment: "Backend admin endpoints working correctly (GET /admin/users/{user_id}/details provides all needed data). Frontend implementation not tested as per system limitations."
-      - working: true
-        agent: "testing"
-        comment: "TESTED: Admin dashboard is fully functional with proper navigation sidebar (Users, Jobs, Bids tabs). Dashboard displays comprehensive stats (28 users, 6 jobs, 6 bids, 6 active jobs). Eye icon functionality and detailed modal views are implemented in code. Minor issue: Navigation clicks had timeout issues during testing, but this appears to be a testing environment limitation rather than a functional issue. The admin panel structure and components are properly implemented."
+        comment: "Chat messages need to display attached files with proper formatting and download options"
 
   - task: "Update contact information across all pages"
     implemented: true
