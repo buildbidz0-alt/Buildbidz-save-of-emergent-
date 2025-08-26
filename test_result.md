@@ -561,11 +561,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Test bid file download functionality fix"
+    - "Fix bid file download authorization bug"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
-  bid_file_download_testing: "completed"
+  test_priority: "critical_first"
+  bid_file_download_fix: "completed"
 
 agent_communication:
   - agent: "main"
