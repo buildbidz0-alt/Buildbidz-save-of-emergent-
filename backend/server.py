@@ -1819,11 +1819,22 @@ async def download_file(file_type: str, file_id: str, current_user: User = Depen
         if not bid:
             raise HTTPException(status_code=404, detail="Associated bid not found")
         
+        # Role-based access control for bid files (same as get_bid_files)
         job = await db.jobs.find_one({"id": bid["job_id"]})
-        if (current_user.role != UserRole.ADMIN and 
-            current_user.role != UserRole.SALESMAN and
-            bid["supplier_id"] != current_user.id and 
-            (not job or job["posted_by"] != current_user.id)):
+        
+        if current_user.role == UserRole.ADMIN:
+            # Admin can download all bid files
+            pass
+        elif current_user.role == UserRole.SALESMAN:
+            # Salesmen can download all bid files for oversight
+            pass
+        elif bid["supplier_id"] == current_user.id:
+            # Bid owner (supplier/salesman) can download their own bid files
+            pass
+        elif job and job["posted_by"] == current_user.id:
+            # Job owner (buyer) can download bid files submitted to their jobs
+            pass
+        else:
             raise HTTPException(status_code=403, detail="Not authorized to download this file")
     else:  # chat file
         job = await db.jobs.find_one({"id": file_record["job_id"]})
