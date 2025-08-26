@@ -470,17 +470,15 @@ metadata:
   comprehensive_testing_completed: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Implement chat file upload endpoint"
+    - "Add file upload UI to chat interface"
+    - "Implement file preview and download in chat messages"
+    - "Add message deletion functionality"
   stuck_tasks: []
-  test_all: true
-  test_priority: "completed"
-  salesman_testing: "completed"
-  comprehensive_platform_testing: "completed"
-  salesman_my_bids_testing: "completed"
-  file_upload_testing: "completed"
-  awarded_projects_testing: "completed"
-  admin_salesman_authentication_testing: "completed"
-  file_attachment_investigation: "completed"
+  test_all: false
+  test_priority: "high_first"
+  chat_file_sharing: "in_progress"
 
   - task: "Test file upload consistency across all workflows"
     implemented: true
