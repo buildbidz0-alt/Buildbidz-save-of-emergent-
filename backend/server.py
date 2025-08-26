@@ -166,7 +166,7 @@ class ChatMessage(BaseModel):
     sender_id: str
     receiver_id: str
     message: str
-    file_url: Optional[str] = None
+    file_attachments: List[Dict] = []  # List of file attachment metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)
     read: bool = False
 
