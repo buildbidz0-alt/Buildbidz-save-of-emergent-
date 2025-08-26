@@ -383,6 +383,7 @@ class ChatFileSharingTester:
         
         # Test 2: Send text-only message using with-files endpoint
         data = {'message': 'This is a text-only message using the with-files endpoint.'}
+        files = []  # Empty files list
         
         success, response = self.run_test(
             "Send Text-Only Message via With-Files Endpoint",
@@ -390,6 +391,7 @@ class ChatFileSharingTester:
             f"jobs/{self.job_id}/chat/with-files",
             200,
             data=data,
+            files=files,
             token=self.supplier_token
         )
         
