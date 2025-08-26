@@ -356,9 +356,22 @@ const ChatPage = () => {
                 <h2 className="text-lg font-semibold text-white mb-1">
                   {selectedChat.job_title}
                 </h2>
+                {/* Show other participant info */}
+                {selectedChat.other_participant && (
+                  <div className="flex items-center text-sm text-blue-400 mb-2">
+                    <Users className="h-4 w-4 mr-1" />
+                    <span>Chatting with: {selectedChat.other_participant.company_name}</span>
+                    <span className="ml-2 px-2 py-1 bg-blue-600/20 rounded text-xs">
+                      {selectedChat.other_participant.role}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center text-sm text-gray-400">
                   <MessageCircle className="h-4 w-4 mr-1" />
                   <span>{selectedChat.message_count} messages</span>
+                  {selectedChat.message_count === 0 && (
+                    <span className="ml-2 text-green-400">• Ready to start conversation</span>
+                  )}
                 </div>
               </div>
 
