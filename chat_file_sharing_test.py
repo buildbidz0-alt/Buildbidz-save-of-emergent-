@@ -796,7 +796,7 @@ class ChatFileSharingTester:
             "company_name": "Unauthorized Co",
             "contact_phone": "+91-9876543213",
             "role": "supplier",
-            "gst_number": "29UNAUTH1234F1Z5",
+            "gst_number": "27UNAUTH1234F1Z5",
             "address": "999 Unauthorized Street, Chennai, Tamil Nadu - 600001"
         }
         
