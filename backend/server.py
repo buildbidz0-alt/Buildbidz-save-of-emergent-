@@ -1033,8 +1033,125 @@ async def get_job_chat(job_id: str, current_user: User = Depends(get_current_use
     
     return enriched_messages
 
-@api_router.post("/jobs/{job_id}/chat")
-async def send_message(job_id: str, message_data: ChatMessageCreate, current_user: User = Depends(get_current_user)):
+@api_router.post("/upload/chat/{job_id}")
+async def upload_chat_files(
+    job_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload files for chat messages - PDF and JPG only, 10MB limit per file"""
+    # Verify user has access to this chat
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Check if user is authorized to send messages in this chat
+    is_authorized = False
+    if job["posted_by"] == current_user.id:
+        is_authorized = True
+    else:
+        # Check if current user is awarded supplier
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id, "status": "awarded"})
+        if awarded_bid:
+            is_authorized = True
+    
+    # Admin can upload to any chat
+    if current_user.role == UserRole.ADMIN:
+        is_authorized = True
+    
+    if not is_authorized:
+        raise HTTPException(status_code=403, detail="Not authorized to upload files to this chat")
+    
+    uploaded_files = []
+    upload_dir = f"/app/backend/uploads/chat/{job_id}"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    for file in files:
+        # Validate file size (max 10MB)
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(status_code=413, detail=f"File {file.filename} is too large (max 10MB)")
+        
+        # Validate file type - Only PDF and JPG allowed
+        allowed_extensions = {'.pdf', '.jpg', '.jpeg'}
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=415, detail=f"File type {file_extension} not allowed. Only PDF and JPG files are supported.")
+        
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = f"{upload_dir}/{unique_filename}"
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(contents)
+        
+        # Store file info in database
+        file_record = {
+            "id": str(uuid.uuid4()),
+            "job_id": job_id,
+            "original_filename": file.filename,
+            "stored_filename": unique_filename,
+            "file_path": file_path,
+            "file_size": len(contents),
+            "content_type": file.content_type,
+            "uploaded_by": current_user.id,
+            "uploaded_at": datetime.utcnow()
+        }
+        
+        await db.chat_files.insert_one(file_record)
+        
+        uploaded_files.append({
+            "id": file_record["id"],
+            "filename": file.filename,
+            "size": len(contents),
+            "content_type": file.content_type
+        })
+    
+    return {"message": f"Uploaded {len(uploaded_files)} files", "files": uploaded_files}
+
+@api_router.get("/files/chat/{job_id}")
+async def get_chat_files(job_id: str, current_user: User = Depends(get_current_user)):
+    """Get all files for a specific chat"""
+    # Check if job exists and user has access
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Check authorization - same as chat message access
+    is_authorized = False
+    if job["posted_by"] == current_user.id:
+        is_authorized = True
+    else:
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id, "status": "awarded"})
+        if awarded_bid:
+            is_authorized = True
+    
+    if current_user.role == UserRole.ADMIN:
+        is_authorized = True
+    
+    if not is_authorized:
+        raise HTTPException(status_code=403, detail="Not authorized to view files for this chat")
+    
+    files = await db.chat_files.find({"job_id": job_id}).sort("uploaded_at", -1).to_list(100)
+    return [{
+        "id": file["id"],
+        "filename": file["original_filename"],
+        "size": file["file_size"],
+        "content_type": file["content_type"],
+        "uploaded_at": file["uploaded_at"],
+        "uploaded_by": file["uploaded_by"]
+    } for file in files]
+
+# Modify send message endpoint to support file attachments
+@api_router.post("/jobs/{job_id}/chat/with-files")
+async def send_message_with_files(
+    job_id: str, 
+    message: str = Form(...),
+    files: List[UploadFile] = File(default=[]),
+    current_user: User = Depends(get_current_user)
+):
+    """Send a chat message with optional file attachments"""
     # Check if user is involved in this job
     job = await db.jobs.find_one({"id": job_id})
     if not job:
@@ -1067,16 +1184,64 @@ async def send_message(job_id: str, message_data: ChatMessageCreate, current_use
     if not is_authorized or not receiver_id:
         raise HTTPException(status_code=403, detail="Not authorized to send messages in this chat")
     
+    # Handle file uploads if any
+    file_attachments = []
+    if files:
+        upload_dir = f"/app/backend/uploads/chat/{job_id}"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        for file in files:
+            # Validate file size (max 10MB)
+            contents = await file.read()
+            if len(contents) > 10 * 1024 * 1024:  # 10MB
+                raise HTTPException(status_code=413, detail=f"File {file.filename} is too large (max 10MB)")
+            
+            # Validate file type - Only PDF and JPG allowed
+            allowed_extensions = {'.pdf', '.jpg', '.jpeg'}
+            file_extension = Path(file.filename).suffix.lower()
+            if file_extension not in allowed_extensions:
+                raise HTTPException(status_code=415, detail=f"File type {file_extension} not allowed. Only PDF and JPG files are supported.")
+            
+            # Generate unique filename
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            file_path = f"{upload_dir}/{unique_filename}"
+            
+            # Save file
+            with open(file_path, "wb") as buffer:
+                buffer.write(contents)
+            
+            # Store file info in database
+            file_record = {
+                "id": str(uuid.uuid4()),
+                "job_id": job_id,
+                "original_filename": file.filename,
+                "stored_filename": unique_filename,
+                "file_path": file_path,
+                "file_size": len(contents),
+                "content_type": file.content_type,
+                "uploaded_by": current_user.id,
+                "uploaded_at": datetime.utcnow()
+            }
+            
+            await db.chat_files.insert_one(file_record)
+            
+            file_attachments.append({
+                "id": file_record["id"],
+                "filename": file.filename,
+                "size": len(contents),
+                "content_type": file.content_type
+            })
+    
     # Create message
-    message = ChatMessage(
+    chat_msg = ChatMessage(
         job_id=job_id,
         sender_id=current_user.id,
         receiver_id=receiver_id,
-        message=message_data.message,
-        file_url=message_data.file_url
+        message=message,
+        file_attachments=file_attachments
     )
     
-    await db.chat_messages.insert_one(message.dict())
+    await db.chat_messages.insert_one(chat_msg.dict())
     
     # Create notification for receiver
     notification = Notification(
@@ -1088,7 +1253,7 @@ async def send_message(job_id: str, message_data: ChatMessageCreate, current_use
     )
     await db.notifications.insert_one(notification.dict())
     
-    return {"message": "Message sent successfully", "chat_message": message}
+    return {"message": "Message sent successfully", "chat_message": chat_msg, "files_uploaded": len(file_attachments)}
 
 @api_router.get("/admin/chats")
 async def get_all_chats(current_user: User = Depends(require_admin)):
