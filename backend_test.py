@@ -3018,6 +3018,9 @@ def main():
     # CRITICAL REVIEW REQUEST: Chat persistence investigation
     tester.test_chat_persistence_investigation()
     
+    # CRITICAL REVIEW REQUEST: Bid file download functionality
+    tester.test_bid_file_download_functionality()
+    
     # Print summary
     tester.print_summary()
     
