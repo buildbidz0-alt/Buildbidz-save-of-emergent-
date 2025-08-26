@@ -2969,8 +2969,8 @@ class BuildBidzAPITester:
             "company_name": "Bid File Test Supplier Ltd",
             "contact_phone": "+91-9876543221",
             "role": "supplier",
-            "gst_number": "29BIDFILESUP1234F1Z5",
-            "address": "456 Bid File Supplier Street, Delhi"
+            "gst_number": "27BIDFILESUP1234F1Z5",
+            "address": "456 Bid File Supplier Street, Delhi, Delhi - 110001"
         }
         
         success, supplier_response = self.run_test(
