@@ -3278,8 +3278,8 @@ class BuildBidzAPITester:
             "company_name": "Chat Test Buyer Co",
             "contact_phone": "+91-9876543220",
             "role": "buyer",
-            "gst_number": "29CHATBUY1234F1Z5",
-            "address": "123 Chat Buyer Street, Mumbai"
+            "gst_number": "27CHATBY1234F1Z5",
+            "address": "123 Chat Buyer Street, Mumbai, Maharashtra - 400001"
         }
         
         success, buyer_response = self.run_test(
