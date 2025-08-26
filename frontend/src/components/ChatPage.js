@@ -97,15 +97,35 @@ const ChatPage = () => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedChat || sending) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedChat || sending) return;
 
     setSending(true);
     try {
-      await axios.post(`${API}/jobs/${selectedChat.job_id}/chat`, {
-        message: newMessage.trim()
-      });
+      if (selectedFiles.length > 0) {
+        // Send message with files using FormData
+        const formData = new FormData();
+        formData.append('message', newMessage.trim() || 'File attachment');
+        
+        selectedFiles.forEach((file) => {
+          formData.append('files', file);
+        });
+
+        await axios.post(`${API}/jobs/${selectedChat.job_id}/chat/with-files`, formData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            // Don't set Content-Type for FormData, let browser set it with boundary
+          }
+        });
+      } else {
+        // Send text-only message
+        await axios.post(`${API}/jobs/${selectedChat.job_id}/chat`, {
+          message: newMessage.trim()
+        });
+      }
       
       setNewMessage('');
+      setSelectedFiles([]);
+      setShowFileUpload(false);
       // Immediately refresh messages after sending
       await fetchMessages();
       fetchChats(); // Refresh chat list to update last message
@@ -115,6 +135,96 @@ const ChatPage = () => {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const validFiles = [];
+    
+    for (const file of files) {
+      // Validate file type (PDF and JPG only)
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      if (!['pdf', 'jpg', 'jpeg'].includes(fileExtension)) {
+        alert(`File "${file.name}" is not supported. Only PDF and JPG files are allowed.`);
+        continue;
+      }
+      
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+        continue;
+      }
+      
+      validFiles.push(file);
+    }
+    
+    setSelectedFiles([...selectedFiles, ...validFiles]);
+    if (validFiles.length > 0) {
+      setShowFileUpload(true);
+    }
+  };
+
+  const removeFile = (index) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+    if (newFiles.length === 0) {
+      setShowFileUpload(false);
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    if (!window.confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/messages/${messageId}`);
+      // Refresh messages after deletion
+      await fetchMessages();
+      fetchChats(); // Refresh chat list
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      alert('Failed to delete message. Please try again.');
+    }
+  };
+
+  const downloadFile = async (fileId, filename) => {
+    try {
+      const response = await axios.get(`${API}/download/chat/${fileId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download file:', error);
+      alert('Failed to download file. Please try again.');
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (filename) => {
+    const extension = filename.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+      return <Image className="h-4 w-4" />;
+    } else if (extension === 'pdf') {
+      return <FileText className="h-4 w-4" />;
+    }
+    return <FileText className="h-4 w-4" />;
   };
 
   const scrollToBottom = () => {
