@@ -112,50 +112,65 @@ user_problem_statement: |
   6. Validate UI/UX to support file upload, preview, and download within chat
 
 backend:
-  - task: "Fix bid visibility for buyers"
-    implemented: true
-    working: true
+  - task: "Implement chat file upload endpoint"
+    implemented: false
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Need to investigate GET /jobs/{job_id}/bids endpoint - bids may not be showing for buyers"
-      - working: true
-        agent: "testing"
-        comment: "FIXED: ObjectID serialization issue resolved. Endpoint now returns 200 with properly enriched bid data including supplier info (company_name, contact_phone). Tested with real buyer account viewing bids on their job - works perfectly."
+        comment: "Need to create chat file upload endpoint that accepts PDF and JPG files with 10MB limit"
   
-  - task: "Fix My Bids endpoint for suppliers"
-    implemented: true
-    working: true
+  - task: "Modify ChatMessage model to support file attachments"
+    implemented: false
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Need to investigate GET /bids/my endpoint - suppliers may not see their bids"
-      - working: true
-        agent: "testing"
-        comment: "FIXED: ObjectID serialization issue resolved. Endpoint now returns 200 with properly enriched bid data including job info (title, category, location). Tested with real supplier account viewing their bids - works perfectly."
+        comment: "ChatMessage model has file_url field but needs enhancement for file metadata and multiple files"
   
-  - task: "Add user details endpoint for admin"
-    implemented: true
-    working: true
+  - task: "Add chat file download endpoint"
+    implemented: false
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need endpoint to download chat attachments with proper authorization"
+  
+  - task: "Implement message deletion functionality"
+    implemented: false
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Users should be able to delete their own messages and attached files"
+  
+  - task: "Verify no automatic message deletion"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "low"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Endpoint exists at /admin/users/{user_id}/details but needs testing"
       - working: true
         agent: "testing"
-        comment: "TESTED: Admin user details endpoint working correctly. Returns user info, jobs_posted count, bids_submitted count, full job list, and bid list. Password field properly excluded for security."
+        comment: "Previous testing confirmed no TTL indexes or automatic deletion mechanisms exist"
 
   - task: "Implement salesman authentication"
     implemented: true
