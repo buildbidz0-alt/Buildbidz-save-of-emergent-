@@ -3,7 +3,7 @@ import json
 
 def test_specific_endpoints():
     """Test the specific failing endpoints with detailed error analysis"""
-    base_url = "https://construct-connect.preview.emergentagent.com/api"
+    base_url = "https://bb-visibilityfix.preview.emergentagent.com/api"
     
     # First, let's login as admin to get a token
     admin_login = {

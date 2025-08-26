@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class BiddingSystemTester:
-    def __init__(self, base_url="https://construct-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="https://bb-visibilityfix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.buyer_token = None
@@ -614,7 +614,7 @@ class BiddingSystemTester:
 def main():
     print("🎯 Starting Focused Bidding System Testing...")
     print("   Focus: Bid visibility issues for buyers and suppliers")
-    print(f"   Backend URL: https://construct-connect.preview.emergentagent.com")
+    print(f"   Backend URL: https://bb-visibilityfix.preview.emergentagent.com")
     
     tester = BiddingSystemTester()
     

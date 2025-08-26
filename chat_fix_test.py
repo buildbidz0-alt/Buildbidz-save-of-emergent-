@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class ChatFixTester:
-    def __init__(self, base_url="https://construct-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="https://bb-visibilityfix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.buyer_token = None

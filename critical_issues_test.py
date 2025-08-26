@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class CriticalIssuesTester:
-    def __init__(self, base_url="https://construct-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="https://bb-visibilityfix.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
@@ -741,7 +741,7 @@ class CriticalIssuesTester:
 
 def main():
     print("🚀 Starting BuildBidz Critical Issues Testing...")
-    print(f"Backend URL: https://construct-connect.preview.emergentagent.com")
+    print(f"Backend URL: https://bb-visibilityfix.preview.emergentagent.com")
     print("Testing specific issues reported in the platform:")
     print("1. Messaging System Problems")
     print("2. Bid Details Not Showing for Buyers") 
