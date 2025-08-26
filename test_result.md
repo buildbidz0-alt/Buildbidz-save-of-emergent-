@@ -103,11 +103,13 @@
 #====================================================================================================
 
 user_problem_statement: |
-  Fix the broken bidding system where bids placed by suppliers are not visible to either party. 
-  Buyers need to see all bids submitted to their projects (with supplier name, bid amount, messages).
-  Suppliers need a "My Bids" dashboard to track their placed bids and their status (pending, awarded, rejected).
-  Also enhance Admin Panel with detailed views - clicking on user should show email, masked password, all projects posted, and all bids placed.
-  Clicking on project or bid should show full details.
+  Add file and photo sharing functionality to the chat system with message retention:
+  1. Users should be able to send files (PDF and JPG only) within chat
+  2. File size limit: 10MB per attachment  
+  3. Files should be stored permanently with messages
+  4. Remove any automatic message deletion logic
+  5. Users should be able to manually delete their own messages and files
+  6. Validate UI/UX to support file upload, preview, and download within chat
 
 backend:
   - task: "Fix bid visibility for buyers"
