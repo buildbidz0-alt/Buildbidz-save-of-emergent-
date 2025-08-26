@@ -172,7 +172,6 @@ class ChatMessage(BaseModel):
 
 class ChatMessageCreate(BaseModel):
     message: str
-    file_url: Optional[str] = None
 
 # Utility functions
 def hash_password(password: str) -> str:
