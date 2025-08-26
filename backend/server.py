@@ -1718,11 +1718,17 @@ from fastapi.responses import FileResponse
 @api_router.get("/download/{file_type}/{file_id}")
 async def download_file(file_type: str, file_id: str, current_user: User = Depends(get_current_user)):
     """Download a specific file"""
-    if file_type not in ["job", "bid"]:
+    if file_type not in ["job", "bid", "chat"]:
         raise HTTPException(status_code=400, detail="Invalid file type")
     
     # Get file record
-    collection = db.job_files if file_type == "job" else db.bid_files
+    if file_type == "job":
+        collection = db.job_files
+    elif file_type == "bid":
+        collection = db.bid_files
+    else:  # chat
+        collection = db.chat_files
+    
     file_record = await collection.find_one({"id": file_id})
     
     if not file_record:
@@ -1734,20 +1740,51 @@ async def download_file(file_type: str, file_id: str, current_user: User = Depen
         if not job:
             raise HTTPException(status_code=404, detail="Associated job not found")
         
-        # Allow job owner, suppliers who bid, and admin
-        if current_user.role != UserRole.ADMIN and job["posted_by"] != current_user.id:
-            supplier_bid = await db.bids.find_one({"job_id": file_record["job_id"], "supplier_id": current_user.id})
-            if not supplier_bid:
-                raise HTTPException(status_code=403, detail="Not authorized to download this file")
-    else:  # bid file
+        # Role-based access control for job files
+        if current_user.role == UserRole.ADMIN:
+            pass
+        elif current_user.role == UserRole.SALESMAN:
+            pass
+        elif job["posted_by"] == current_user.id:
+            pass
+        elif current_user.role == UserRole.SUPPLIER:
+            if job.get("status") == "open":
+                pass
+            else:
+                supplier_bid = await db.bids.find_one({"job_id": file_record["job_id"], "supplier_id": current_user.id})
+                if not supplier_bid:
+                    raise HTTPException(status_code=403, detail="Not authorized to download this file")
+        else:
+            raise HTTPException(status_code=403, detail="Not authorized to download this file")
+    elif file_type == "bid":
         bid = await db.bids.find_one({"id": file_record["bid_id"]})
         if not bid:
             raise HTTPException(status_code=404, detail="Associated bid not found")
         
         job = await db.jobs.find_one({"id": bid["job_id"]})
         if (current_user.role != UserRole.ADMIN and 
+            current_user.role != UserRole.SALESMAN and
             bid["supplier_id"] != current_user.id and 
             (not job or job["posted_by"] != current_user.id)):
+            raise HTTPException(status_code=403, detail="Not authorized to download this file")
+    else:  # chat file
+        job = await db.jobs.find_one({"id": file_record["job_id"]})
+        if not job:
+            raise HTTPException(status_code=404, detail="Associated job not found")
+        
+        # Check authorization - same as chat access
+        is_authorized = False
+        if job["posted_by"] == current_user.id:
+            is_authorized = True
+        else:
+            awarded_bid = await db.bids.find_one({"job_id": file_record["job_id"], "supplier_id": current_user.id, "status": "awarded"})
+            if awarded_bid:
+                is_authorized = True
+        
+        if current_user.role == UserRole.ADMIN:
+            is_authorized = True
+        
+        if not is_authorized:
             raise HTTPException(status_code=403, detail="Not authorized to download this file")
     
     # Check if file exists on disk
@@ -1759,6 +1796,35 @@ async def download_file(file_type: str, file_id: str, current_user: User = Depen
         filename=file_record["original_filename"],
         media_type=file_record["content_type"]
     )
+
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a chat message (only the sender can delete their own messages)"""
+    # Find the message
+    message = await db.chat_messages.find_one({"id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Check if current user is the sender
+    if message["sender_id"] != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="You can only delete your own messages")
+    
+    # Delete associated files if any
+    if message.get("file_attachments"):
+        for file_attachment in message["file_attachments"]:
+            # Find and delete file record
+            file_record = await db.chat_files.find_one({"id": file_attachment["id"]})
+            if file_record:
+                # Delete file from disk
+                if os.path.exists(file_record["file_path"]):
+                    os.remove(file_record["file_path"])
+                # Delete file record from database
+                await db.chat_files.delete_one({"id": file_attachment["id"]})
+    
+    # Delete the message
+    await db.chat_messages.delete_one({"id": message_id})
+    
+    return {"message": "Message and associated files deleted successfully"}
 
 # Support info endpoint
 @api_router.get("/support-info")
