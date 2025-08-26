@@ -316,16 +316,29 @@ const ChatPage = () => {
                     )}
                   </div>
                   
-                  {chat.last_message && (
+                  {/* Show other participant info */}
+                  {chat.other_participant && (
+                    <div className="text-xs text-blue-400 mb-1">
+                      👤 {chat.other_participant.company_name} ({chat.other_participant.role})
+                    </div>
+                  )}
+                  
+                  {chat.last_message ? (
                     <p className="text-sm text-gray-400 truncate mb-1">
                       {chat.last_message}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic mb-1">
+                      {chat.message_count === 0 ? 'Start conversation...' : 'No messages yet'}
                     </p>
                   )}
                   
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{chat.message_count} messages</span>
-                    {chat.last_message_at && (
+                    {chat.last_message_at ? (
                       <span>{formatTime(chat.last_message_at)}</span>
+                    ) : (
+                      <span className="text-green-400">New Chat Available</span>
                     )}
                   </div>
                 </div>
