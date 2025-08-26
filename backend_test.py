@@ -3357,6 +3357,9 @@ def main():
     # CRITICAL REVIEW REQUEST: Bid file download functionality
     tester.test_bid_file_download_functionality()
     
+    # CRITICAL REVIEW REQUEST: Chat initialization fix testing
+    tester.test_chat_initialization_fix()
+    
     # Print summary
     tester.print_summary()
     
