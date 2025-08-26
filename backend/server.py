@@ -1522,21 +1522,32 @@ async def get_bid_files(bid_id: str, current_user: User = Depends(get_current_us
     if not bid:
         raise HTTPException(status_code=404, detail="Bid not found")
     
-    # Allow bid owner, job owner, and admin to view files
+    # Role-based access control for bid files
     job = await db.jobs.find_one({"id": bid["job_id"]})
-    if (current_user.role == UserRole.ADMIN or 
-        bid["supplier_id"] == current_user.id or 
-        (job and job["posted_by"] == current_user.id)):
-        files = await db.bid_files.find({"bid_id": bid_id}).sort("uploaded_at", -1).to_list(100)
-        return [{
-            "id": file["id"],
-            "filename": file["original_filename"],
-            "size": file["file_size"],
-            "content_type": file["content_type"],
-            "uploaded_at": file["uploaded_at"]
-        } for file in files]
+    
+    if current_user.role == UserRole.ADMIN:
+        # Admin can view all bid files
+        pass
+    elif current_user.role == UserRole.SALESMAN:
+        # Salesmen can view all bid files for oversight
+        pass
+    elif bid["supplier_id"] == current_user.id:
+        # Bid owner (supplier/salesman) can view their own bid files
+        pass
+    elif job and job["posted_by"] == current_user.id:
+        # Job owner (buyer) can view bid files submitted to their jobs
+        pass
     else:
         raise HTTPException(status_code=403, detail="Not authorized to view files for this bid")
+    
+    files = await db.bid_files.find({"bid_id": bid_id}).sort("uploaded_at", -1).to_list(100)
+    return [{
+        "id": file["id"],
+        "filename": file["original_filename"],
+        "size": file["file_size"],
+        "content_type": file["content_type"],
+        "uploaded_at": file["uploaded_at"]
+    } for file in files]
 
 from fastapi.responses import FileResponse
 
