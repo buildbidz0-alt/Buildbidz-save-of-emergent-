@@ -427,18 +427,75 @@ const ChatPage = () => {
 
               {/* Message Input */}
               <div className="p-4 border-t border-gray-700 glass">
+                {/* File Upload Area */}
+                {showFileUpload && (
+                  <div className="mb-4 p-3 bg-gray-800 rounded-lg border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-white">Selected Files</span>
+                      <button
+                        onClick={() => {
+                          setSelectedFiles([]);
+                          setShowFileUpload(false);
+                        }}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center space-x-2 p-2 bg-gray-700 rounded">
+                          {getFileIcon(file.name)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{file.name}</p>
+                            <p className="text-xs text-gray-400">{formatFileSize(file.size)}</p>
+                          </div>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <form onSubmit={sendMessage} className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    disabled={sending}
-                  />
+                  <div className="flex-1 flex space-x-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder={selectedFiles.length > 0 ? "Add a message (optional)..." : "Type your message..."}
+                      className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      disabled={sending}
+                    />
+                    
+                    {/* File upload button */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      multiple
+                      accept=".pdf,.jpg,.jpeg"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
+                      disabled={sending}
+                      title="Attach files (PDF, JPG only)"
+                    >
+                      <Paperclip className="h-5 w-5" />
+                    </button>
+                  </div>
+                  
                   <button
                     type="submit"
-                    disabled={!newMessage.trim() || sending}
+                    disabled={(!newMessage.trim() && selectedFiles.length === 0) || sending}
                     className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     {sending ? (
@@ -448,6 +505,11 @@ const ChatPage = () => {
                     )}
                   </button>
                 </form>
+
+                {/* File upload instructions */}
+                <div className="mt-2 text-xs text-gray-500">
+                  <p>📎 You can attach PDF and JPG files (max 10MB each)</p>
+                </div>
               </div>
             </>
           ) : (
