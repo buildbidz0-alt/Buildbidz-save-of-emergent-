@@ -52,7 +52,9 @@ const ChatPage = () => {
 
   const fetchChats = async () => {
     try {
-      const response = await axios.get(`${API}/chats`);
+      const response = await axios.get(`${API}/chats`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       setChats(response.data);
     } catch (error) {
       console.error('Failed to fetch chats:', error);
