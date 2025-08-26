@@ -508,7 +508,7 @@ class ChatFileSharingTester:
             "company_name": "Other Supplier Co",
             "contact_phone": "+91-9876543212",
             "role": "supplier",
-            "gst_number": "29OTHER1234F1Z5",
+            "gst_number": "27OTHER1234F1Z5",
             "address": "789 Other Street, Bangalore, Karnataka - 560001"
         }
         
