@@ -1255,6 +1255,64 @@ async def send_message_with_files(
     
     return {"message": "Message sent successfully", "chat_message": chat_msg, "files_uploaded": len(file_attachments)}
 
+@api_router.post("/jobs/{job_id}/chat")
+async def send_message(job_id: str, message_data: ChatMessageCreate, current_user: User = Depends(get_current_user)):
+    """Send a simple text message (backward compatibility)"""
+    # Check if user is involved in this job
+    job = await db.jobs.find_one({"id": job_id})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    is_authorized = False
+    receiver_id = None
+    
+    # Determine receiver based on sender
+    if job["posted_by"] == current_user.id:
+        # Buyer is sending message - send to awarded supplier
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "status": "awarded"})
+        if awarded_bid:
+            receiver_id = awarded_bid["supplier_id"]
+            is_authorized = True
+    else:
+        # Check if current user is awarded supplier
+        awarded_bid = await db.bids.find_one({"job_id": job_id, "supplier_id": current_user.id, "status": "awarded"})
+        if awarded_bid:
+            receiver_id = job["posted_by"]
+            is_authorized = True
+    
+    # Admin can send messages to anyone
+    if current_user.role == UserRole.ADMIN:
+        is_authorized = True
+        # For admin, send to job poster by default
+        if not receiver_id:
+            receiver_id = job["posted_by"]
+    
+    if not is_authorized or not receiver_id:
+        raise HTTPException(status_code=403, detail="Not authorized to send messages in this chat")
+    
+    # Create message
+    message = ChatMessage(
+        job_id=job_id,
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        message=message_data.message,
+        file_attachments=[]
+    )
+    
+    await db.chat_messages.insert_one(message.dict())
+    
+    # Create notification for receiver
+    notification = Notification(
+        user_id=receiver_id,
+        title="New Message",
+        message=f"You have a new message regarding '{job['title']}'",
+        type="chat_message",
+        related_job_id=job_id
+    )
+    await db.notifications.insert_one(notification.dict())
+    
+    return {"message": "Message sent successfully", "chat_message": message}
+
 @api_router.get("/admin/chats")
 async def get_all_chats(current_user: User = Depends(require_admin)):
     # Get all jobs with their chat activity
