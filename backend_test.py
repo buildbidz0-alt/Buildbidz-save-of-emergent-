@@ -3124,7 +3124,7 @@ class BuildBidzAPITester:
             "company_name": "Unauthorized User Co",
             "contact_phone": "+91-9876543223",
             "role": "supplier",
-            "gst_number": "27UNAUTH1234F1Z5",
+            "gst_number": "27MNOPQ9876R3Z4",
             "address": "999 Unauthorized Street, Chennai, Tamil Nadu - 600001"
         }
         
