@@ -2943,8 +2943,8 @@ class BuildBidzAPITester:
             "company_name": "Bid File Test Buyer Co",
             "contact_phone": "+91-9876543220",
             "role": "buyer",
-            "gst_number": "29BIDFILE1234F1Z5",
-            "address": "123 Bid File Test Street, Mumbai"
+            "gst_number": "27BIDFILE1234F1Z5",
+            "address": "123 Bid File Test Street, Mumbai, Maharashtra - 400001"
         }
         
         success, buyer_response = self.run_test(
