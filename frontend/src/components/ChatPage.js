@@ -126,6 +126,8 @@ const ChatPage = () => {
         // Send text-only message
         await axios.post(`${API}/jobs/${selectedChat.job_id}/chat`, {
           message: newMessage.trim()
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       }
       
