@@ -21,7 +21,7 @@
     previews = {
       web = {
         # Run install and start in sequence to avoid a race condition.
-        command = [ "sh" "-c" "yarn install && yarn start" ];
+        command = [ "sh" "-c" "yarn install && NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false yarn start" ];
         cwd = "frontend";
         manager = "web";
       };
