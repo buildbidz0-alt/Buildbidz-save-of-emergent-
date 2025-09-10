@@ -7,6 +7,7 @@
     pkgs.nodejs_20
     pkgs.python311
     pkgs.python311Packages.pip
+    pkgs.yarn
   ];
 
   # An attribute set of environment variables.
@@ -19,7 +20,7 @@
     enable = true;
     previews = {
       web = {
-        command = [ "npm" "run" "start" "--" "--port" "$PORT" "--host" "0.0.0.0" "--disable-host-check" ];
+        command = [ "yarn" "start" ];
         cwd = "frontend";
         manager = "web";
       };
@@ -29,10 +30,11 @@
   # Workspace lifecycle hooks.
   idx.workspace = {
     onCreate = {
-      install-frontend-deps = "cd frontend && npm install --legacy-peer-deps";
       install-backend-deps = "cd backend && python3 -m pip install -r requirements.txt";
     };
     onStart = {
+      # Install frontend dependencies every time the workspace starts.
+      install-frontend-deps = "cd frontend && yarn install";
       # Start the backend server as a background process.
       start-backend = "cd backend && python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload &";
     };
