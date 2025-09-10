@@ -20,7 +20,8 @@
     enable = true;
     previews = {
       web = {
-        command = [ "yarn" "start" ];
+        # Run install and start in sequence to avoid a race condition.
+        command = [ "sh" "-c" "yarn install && yarn start" ];
         cwd = "frontend";
         manager = "web";
       };
@@ -33,8 +34,6 @@
       install-backend-deps = "cd backend && python3 -m pip install -r requirements.txt";
     };
     onStart = {
-      # Install frontend dependencies every time the workspace starts.
-      install-frontend-deps = "cd frontend && yarn install";
       # Start the backend server as a background process.
       start-backend = "cd backend && python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload &";
     };
